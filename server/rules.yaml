@@ -1,0 +1,51 @@
+# Exposure Drift Sentinel — Rule Configuration
+# Version key is the SHA-256 content hash of this file, computed at startup.
+# Do NOT put magic numbers in application code — all thresholds live here.
+#
+# This file is stored in ruleVersions on startup if the hash differs from the latest entry.
+
+version: "placeholder-p0"
+
+rules:
+  R1_TIV_INCREASE:
+    description: "Policy total TIV increases by a material percentage"
+    tiers:
+      - { minPct: 10, maxPct: 25, points: 3, label: "Moderate increase (10–25%)" }
+      - { minPct: 25, points: 5, label: "Significant increase (≥25%)" }
+
+  R2_NEW_LOCATION:
+    description: "A new insured location is added to the policy"
+    points: 3
+
+  R3_HIGH_FLOOD_ZONE:
+    description: "A location is newly in or worsened into a high-risk flood zone (A, AE, V)"
+    highRiskZones: ["A", "AE", "V"]
+    zoneOrder: ["X", "B", "A", "AE", "V"]
+    points: 5
+
+  R4_FLOOD_SCORE_WORSENED:
+    description: "Flood hazard score increases by 2 or more points"
+    minDelta: 2
+    points: 3
+
+  R5_COMBINED_ESCALATION:
+    description: "New location added in a high-risk flood zone — escalate to HIGH regardless of score"
+    requires: ["R2_NEW_LOCATION", "R3_HIGH_FLOOD_ZONE"]
+    forceSeverity: "HIGH"
+
+  R6_PORTFOLIO_BREACH:
+    description: "Regional flood-zone TIV share exceeds the appetite cap"
+    evaluatedBy: "portfolioService"
+
+severity:
+  HIGH: { minScore: 5 }
+  MEDIUM: { minScore: 3 }
+  LOW: { minScore: 1 }
+
+recommendedActions:
+  HIGH: "Review exposure and consider re-rating or referral"
+  MEDIUM: "Review at next opportunity and request information if needed"
+  LOW: "Note for renewal"
+
+appetite:
+  defaultFloodCapPct: 0.20

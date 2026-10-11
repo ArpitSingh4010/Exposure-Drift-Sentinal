@@ -1,0 +1,8 @@
+.prettierignore
+# Prettier ignore
+node_modules
+dist
+build
+.turbo
+coverage
+*.min.js

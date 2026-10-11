@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS custom properties (design tokens) ─────────────────────────────── */
+:root {
+  --color-topbar:       #0B1F3A;
+  --color-topbar-text:  #e8edf5;
+  --color-accent:       #00c7b8;
+  --color-accent-dark:  #009d8f;
+  --color-sidebar-bg:   #f3f4f6;
+  --color-sidebar-border: #e5e7eb;
+  --color-border:       #e5e7eb;
+  --color-text-primary: #111827;
+  --color-text-muted:   #6b7280;
+  --font-base:          14px;
+  --radius-chip:        4px;
+}
+
+/* ── Base resets ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  font-size: var(--font-base);
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--color-text-primary);
+}
+
+/* ── Scrollbar (subtle) ──────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* ── Utility: severity chips ─────────────────────────────────────────────── */
+.chip {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded font-medium text-xs uppercase tracking-wide;
+  border-radius: var(--radius-chip);
+}
+.chip-high   { @apply bg-red-100   text-red-700   border border-red-200;   }
+.chip-medium { @apply bg-amber-100 text-amber-700 border border-amber-200; }
+.chip-low    { @apply bg-blue-100  text-blue-700  border border-blue-200;  }
+.chip-verify { @apply bg-gray-100  text-gray-600  border border-gray-200;  }
+.chip-open   { @apply bg-teal-100  text-teal-700  border border-teal-200;  }
+
+/* ── Utility: enterprise table ───────────────────────────────────────────── */
+.eds-table {
+  @apply w-full text-sm border-collapse;
+}
+.eds-table th {
+  @apply bg-gray-50 text-gray-500 text-xs font-semibold uppercase tracking-wider
+         px-3 py-2 text-left border-b border-gray-200 whitespace-nowrap;
+}
+.eds-table td {
+  @apply px-3 py-2 border-b border-gray-100 align-middle;
+}
+.eds-table tbody tr {
+  @apply hover:bg-gray-50 transition-colors duration-100 cursor-pointer;
+}
+.eds-table tbody tr.overdue td { @apply bg-red-50; }
+
+/* ── Utility: card ───────────────────────────────────────────────────────── */
+.eds-card {
+  @apply bg-white rounded-lg border border-gray-200 shadow-card;
+}
+
+/* ── Utility: label + value pair ─────────────────────────────────────────── */
+.eds-label { @apply text-xs text-gray-500 font-medium uppercase tracking-wider; }
+.eds-value { @apply text-sm text-gray-900 font-medium; }
+
+/* ── Transition helpers ──────────────────────────────────────────────────── */
+.fade-in  { animation: fadeIn  0.15s ease-out; }
+.slide-in { animation: slideIn 0.20s ease-out; }
+
+@keyframes fadeIn  { from { opacity: 0; }           to { opacity: 1; }          }
+@keyframes slideIn { from { opacity: 0; transform: translateY(4px); }
+                     to   { opacity: 1; transform: translateY(0);    }          }
+
+/* ── Top bar ─────────────────────────────────────────────────────────────── */
+.topbar {
+  background: var(--color-topbar);
+  color: var(--color-topbar-text);
+  @apply flex items-center h-12 px-4 gap-6 shadow-topbar select-none;
+}
+.topbar-tab {
+  @apply text-sm font-medium px-3 py-1 rounded transition-colors duration-150
+         text-navy-300 hover:text-white hover:bg-white/10;
+}
+.topbar-tab.active {
+  @apply text-white bg-white/15;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+  background: var(--color-sidebar-bg);
+  border-right: 1px solid var(--color-sidebar-border);
+  @apply w-56 flex-shrink-0 flex flex-col overflow-y-auto;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.eds-footer {
+  @apply text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-auto;
+}
