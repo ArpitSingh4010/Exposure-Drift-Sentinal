@@ -3,14 +3,14 @@ import React from 'react';
 export function SeverityChip({ severity }: { severity: 'LOW' | 'MEDIUM' | 'HIGH' }): React.ReactElement {
   const dotColor =
     severity === 'HIGH'
-      ? 'pulse-dot-red'
+      ? 'status-dot-red'
       : severity === 'MEDIUM'
-        ? 'pulse-dot-amber'
-        : 'bg-blue-500';
+        ? 'status-dot-amber'
+        : 'status-dot-blue';
 
   return (
     <span className={`chip chip-${severity.toLowerCase()}`}>
-      <span className={`pulse-dot ${dotColor}`} aria-hidden="true" />
+      <span className={`status-dot ${dotColor}`} aria-hidden="true" />
       <span>{severity}</span>
     </span>
   );

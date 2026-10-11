@@ -61,9 +61,9 @@ export function Desktop(): React.ReactElement {
 
   if (eventsQuery.isLoading || activitiesQuery.isLoading) {
     return (
-      <div className="p-8 flex flex-col items-center justify-center min-h-[300px] text-slate-500 space-y-3">
-        <div className="w-8 h-8 border-3 border-teal-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-medium">Loading underwriter activities...</p>
+      <div className="p-8 flex flex-col items-center justify-center min-h-[300px] text-slate-500 space-y-2">
+        <div className="w-5 h-5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs font-medium text-slate-500">Loading activities...</p>
       </div>
     );
   }
@@ -71,214 +71,143 @@ export function Desktop(): React.ReactElement {
   if (eventsQuery.isError || activitiesQuery.isError) {
     return (
       <div className="p-6">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-5 shadow-sm">
-          <div className="font-semibold text-base">Unable to connect to Sentinel API</div>
-          <p className="text-sm mt-1 text-red-600">Please verify the server is running on port 4000.</p>
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-xs font-medium">
+          Unable to connect to Sentinel server. Verify server is running on port 4000.
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8 eds-canvas min-h-full space-y-6 fade-in">
-      {/* Header Banner */}
-      <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
+    <div className="p-6 lg:p-8 space-y-6 fade-in max-w-7xl">
+      {/* Clean Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
-              Guidewire PolicyCenter Triage
-            </span>
-            <span className="text-xs text-slate-400">·</span>
-            <span className="text-xs text-slate-500 font-medium">Auto-Ingest Active</span>
-          </div>
-          <h1 className="text-3xl font-heading font-extrabold text-slate-900 mt-1 tracking-tight">
-            My Activities
+          <h1 className="text-2xl font-heading font-semibold text-slate-900 tracking-tight">
+            Review Activities
           </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-            Commercial property exposure changes requiring underwriting review, re-rating referral, or bound schedule updates.
+          <p className="text-xs text-slate-500 mt-1">
+            Exposure changes on bound commercial property policies requiring underwriter review.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => navigate('/simulator')}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-glow hover:opacity-95 transition-all transform hover:-translate-y-0.5"
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-sm"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Trigger Signal Simulator
+            Simulate Signal
           </button>
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger-in">
-        <div className="eds-card p-5 relative overflow-hidden group hover:border-teal-300">
-          <div className="flex items-center justify-between">
-            <span className="eds-label">Open Review Queue</span>
-            <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-xs">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
+      {/* KPI Cards Grid (Linear / Stripe style) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="eds-card p-4">
+          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            Open Reviews
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-heading font-extrabold text-slate-900">{openCount}</span>
-            <span className="text-xs text-slate-500 font-medium">pending decision</span>
+          <div className="text-2xl font-heading font-semibold text-slate-900 mt-2">
+            {openCount}
           </div>
-          <div className="mt-3 text-[11px] text-teal-700 font-medium flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-            Requires human action
-          </div>
+          <div className="text-xs text-slate-400 mt-1">Pending review</div>
         </div>
 
-        <div className="eds-card p-5 relative overflow-hidden group hover:border-red-300">
-          <div className="flex items-center justify-between">
-            <span className="eds-label text-red-600">High Severity</span>
-            <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
+        <div className="eds-card p-4">
+          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            High Severity
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-heading font-extrabold text-red-600">{highCount}</span>
-            <span className="text-xs text-red-700/80 font-medium">escalated</span>
+          <div className="text-2xl font-heading font-semibold text-slate-900 mt-2">
+            {highCount}
           </div>
-          <div className="mt-3 text-[11px] text-red-700 font-medium flex items-center gap-1">
-            <span className="pulse-dot pulse-dot-red" />
-            2-day SLA window
-          </div>
+          <div className="text-xs text-slate-400 mt-1">2-day SLA window</div>
         </div>
 
-        <div className={`eds-card p-5 relative overflow-hidden group ${overdueCount > 0 ? 'border-red-300 bg-red-50/20' : 'hover:border-amber-300'}`}>
-          <div className="flex items-center justify-between">
-            <span className="eds-label text-amber-700">Overdue SLA</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-xs">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+        <div className="eds-card p-4">
+          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            Overdue
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className={`text-3xl font-heading font-extrabold ${overdueCount > 0 ? 'text-red-700' : 'text-slate-900'}`}>{overdueCount}</span>
-            <span className="text-xs text-slate-500 font-medium">breached SLA</span>
+          <div className={`text-2xl font-heading font-semibold mt-2 ${overdueCount > 0 ? 'text-red-600' : 'text-slate-900'}`}>
+            {overdueCount}
           </div>
-          <div className="mt-3 text-[11px] text-amber-700 font-medium flex items-center gap-1">
-            <span className="pulse-dot pulse-dot-amber" />
-            Priority escalation
-          </div>
+          <div className="text-xs text-slate-400 mt-1">Exceeded SLA</div>
         </div>
 
-        <div className="eds-card p-5 relative overflow-hidden group hover:border-slate-400">
-          <div className="flex items-center justify-between">
-            <span className="eds-label">Verify First</span>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
+        <div className="eds-card p-4">
+          <div className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+            Verify First
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-heading font-extrabold text-slate-800">{verifyCount}</span>
-            <span className="text-xs text-slate-500 font-medium">&lt; 75% confidence</span>
+          <div className="text-2xl font-heading font-semibold text-slate-900 mt-2">
+            {verifyCount}
           </div>
-          <div className="mt-3 text-[11px] text-slate-600 font-medium flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-            Confirm entity match
-          </div>
+          <div className="text-xs text-slate-400 mt-1">&lt;75% entity confidence</div>
         </div>
       </div>
 
-      {/* Main Review Queue Table Card */}
+      {/* Activities Table Card */}
       <section className="eds-card overflow-hidden">
-        {/* Table Toolbar */}
-        <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-200/80 bg-white flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search policy, event, or insured..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 w-64 bg-slate-50 focus:bg-white transition-all focus:border-teal-500"
-              />
-              <svg
-                className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <span className="text-xs text-slate-500 font-medium hidden sm:inline">
-              Showing <strong>{rows.length}</strong> activities
-            </span>
+        {/* Table Filter Toolbar */}
+        <div className="p-3.5 sm:px-4 border-b border-slate-200 bg-white flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-1 max-w-sm">
+            <input
+              type="text"
+              placeholder="Filter by policy # or subject..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full px-3 py-1.5 text-xs rounded-md border border-slate-300 bg-white focus:border-slate-400 text-slate-800"
+            />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 p-1 rounded-lg border border-slate-200">
-              <span className="text-[11px] font-bold text-slate-400 uppercase px-1.5">Filters:</span>
-              <select
-                value={severity}
-                onChange={(event) => setSeverity(event.target.value)}
-                className="text-xs border-0 bg-transparent py-1 pl-1 pr-6 font-semibold text-slate-700 cursor-pointer focus:ring-0"
-                aria-label="Filter severity"
-              >
-                <option value="ALL">All Severities</option>
-                <option value="HIGH">High Severity</option>
-                <option value="MEDIUM">Medium Severity</option>
-                <option value="LOW">Low Severity</option>
-              </select>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={severity}
+              onChange={(e) => setSeverity(e.target.value)}
+              className="text-xs border border-slate-300 rounded-md px-2.5 py-1.5 bg-white text-slate-700 cursor-pointer"
+              aria-label="Filter severity"
+            >
+              <option value="ALL">All Severities</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
 
-              <select
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-                className="text-xs border-0 bg-transparent py-1 pl-1 pr-6 font-semibold text-slate-700 cursor-pointer focus:ring-0"
-                aria-label="Filter status"
-              >
-                <option value="OPEN">Open Only</option>
-                <option value="ALL">All Statuses</option>
-                <option value="COMPLETED">Completed</option>
-              </select>
-            </div>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="text-xs border border-slate-300 rounded-md px-2.5 py-1.5 bg-white text-slate-700 cursor-pointer"
+              aria-label="Filter status"
+            >
+              <option value="OPEN">Open Only</option>
+              <option value="ALL">All Statuses</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
 
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 cursor-pointer transition-colors">
+            <label className="flex items-center gap-1.5 text-xs text-slate-600 border border-slate-300 rounded-md px-2.5 py-1.5 bg-white cursor-pointer hover:bg-slate-50">
               <input
                 type="checkbox"
                 checked={mine}
-                onChange={(event) => setMine(event.target.checked)}
-                className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                onChange={(e) => setMine(e.target.checked)}
+                className="rounded border-slate-300 text-slate-900"
               />
-              Assigned to Me
+              Mine
             </label>
           </div>
         </div>
 
         {/* Table Body */}
         {rows.length === 0 ? (
-          <div className="p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-base font-bold text-slate-800">No activities match your filters</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto">
-              Try adjusting your severity or status filters, or trigger a new scenario in the Signal Simulator.
-            </p>
+          <div className="p-12 text-center text-xs text-slate-500">
+            No activities match your filters.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="eds-table min-w-[960px]">
+            <table className="eds-table min-w-[900px]">
               <thead>
                 <tr>
                   <th>Severity</th>
-                  <th>Policy & Event</th>
-                  <th>Subject & Exposure Change</th>
-                  <th>Entity Confidence</th>
+                  <th>Policy</th>
+                  <th>Subject & Details</th>
+                  <th>Match Confidence</th>
                   <th>Status</th>
                   <th>Due Date</th>
                   <th>Assignee</th>
@@ -296,50 +225,46 @@ export function Desktop(): React.ReactElement {
                       onClick={() => navigate(`/events/${event.eventId}`)}
                     >
                       <td>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
                           <SeverityChip severity={event.severity} />
                           {event.verifyFirst && (
                             <span className="chip chip-verify">Verify</span>
                           )}
                           {event.portfolioBreach && (
-                            <span className="chip chip-high animate-pulse">Breach</span>
+                            <span className="chip chip-high">Breach</span>
                           )}
                         </div>
                       </td>
 
                       <td>
-                        <div className="font-heading font-bold text-slate-900 group-hover:text-teal-700 transition-colors">
+                        <div className="font-medium text-slate-900">
                           {event.policyId}
                         </div>
-                        <div className="text-[11px] font-mono text-slate-500 mt-0.5">
+                        <div className="text-[11px] text-slate-400 font-mono">
                           {event.eventId}
                         </div>
                       </td>
 
                       <td>
-                        <div className="max-w-[340px] truncate font-semibold text-slate-800">
+                        <div className="max-w-[340px] truncate font-medium text-slate-800">
                           {activity.subject}
                         </div>
-                        <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
-                          <span className="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 font-medium">
-                            {event.changes.length} {event.changes.length === 1 ? 'change' : 'changes'}
-                          </span>
-                          <span>&bull;</span>
-                          <span>After TIV: <strong>{formatMoney(event.after.totalTiv)}</strong></span>
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          {event.changes.length} change{event.changes.length === 1 ? '' : 's'} &bull; After TIV: {formatMoney(event.after.totalTiv)}
                         </div>
                       </td>
 
                       <td>
                         <div className="flex items-center gap-2">
-                          <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <span className="font-medium text-xs text-slate-700">
+                            {Math.round(event.confidence * 100)}%
+                          </span>
+                          <div className="w-12 h-1 bg-slate-200 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-teal-400 to-cyan-500 rounded-full"
+                              className="h-full bg-slate-700 rounded-full"
                               style={{ width: `${Math.round(event.confidence * 100)}%` }}
                             />
                           </div>
-                          <span className="font-heading font-bold text-xs text-slate-700">
-                            {Math.round(event.confidence * 100)}%
-                          </span>
                         </div>
                       </td>
 
@@ -350,31 +275,25 @@ export function Desktop(): React.ReactElement {
                       </td>
 
                       <td>
-                        <div className={overdue ? 'text-red-700 font-bold' : 'text-slate-700 font-semibold'}>
+                        <div className={overdue ? 'text-red-700 font-semibold' : 'text-slate-700'}>
                           {new Date(activity.dueDate).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
-                            year: 'numeric',
                           })}
                         </div>
-                        {overdue ? (
-                          <div className="text-[10px] uppercase font-bold text-red-600 tracking-wider">
-                            SLA Overdue
+                        {overdue && (
+                          <div className="text-[10px] uppercase font-bold text-red-600">
+                            Overdue
                           </div>
-                        ) : (
-                          <div className="text-[10px] text-slate-400">Within window</div>
                         )}
                       </td>
 
                       <td>
-                        <div className="font-medium text-slate-800 text-xs flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold">
-                            {activity.assigneeUserId.slice(-1)}
-                          </span>
+                        <div className="text-xs text-slate-700 font-medium">
                           {activity.assigneeUserId}
                         </div>
                         {activity.seniorFlag && (
-                          <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-1 rounded">
+                          <span className="text-[10px] text-amber-700">
                             Senior UW Flag
                           </span>
                         )}

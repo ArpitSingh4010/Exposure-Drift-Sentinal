@@ -33,22 +33,15 @@ export function Policies(): React.ReactElement {
   const selectedDetail = detailQuery.data;
 
   return (
-    <div className="p-6 lg:p-8 eds-canvas min-h-full space-y-6 fade-in">
+    <div className="p-6 lg:p-8 space-y-6 fade-in max-w-7xl">
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
-              Commercial Lines Schedule
-            </span>
-            <span className="text-xs text-slate-400">&bull;</span>
-            <span className="text-xs text-slate-500 font-medium">PolicyCenter Bound Records</span>
-          </div>
-          <h1 className="text-3xl font-heading font-extrabold text-slate-900 mt-1 tracking-tight">
+          <h1 className="text-2xl font-heading font-semibold text-slate-900 tracking-tight">
             Policies & Locations
           </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-            Inspect commercial property accounts, underlying location schedules, historical risk snapshots, and policy-specific drift timelines.
+          <p className="text-xs text-slate-500 mt-1">
+            Commercial property accounts, location schedules, and policy drift history.
           </p>
         </div>
 

@@ -78,29 +78,22 @@ export function Rules(): React.ReactElement {
   };
 
   return (
-    <div className="p-6 lg:p-8 eds-canvas min-h-full space-y-6 fade-in">
+    <div className="p-6 lg:p-8 space-y-6 fade-in max-w-7xl">
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
-              Deterministic Logic
-            </span>
-            <span className="text-xs text-slate-400">&bull;</span>
-            <span className="text-xs text-slate-500 font-medium">Versioned rules.yaml</span>
-          </div>
-          <h1 className="text-3xl font-heading font-extrabold text-slate-900 mt-1 tracking-tight">
-            Rules Catalog & Appetite
+          <h1 className="text-2xl font-heading font-semibold text-slate-900 tracking-tight">
+            Rules Catalog
           </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-            Version-controlled business rules loaded on server startup. Content hash is verified into MongoDB ruleVersions.
+          <p className="text-xs text-slate-500 mt-1">
+            Deterministic underwriting thresholds and materiality scoring tiers configured in server/rules.yaml.
           </p>
         </div>
 
         <div className="text-right">
-          <div className="eds-label text-slate-400">Active Rule Version SHA-256</div>
-          <div className="font-mono text-xs font-bold text-navy-950 mt-1 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-            {query.data.version}
+          <div className="text-[11px] font-medium text-slate-500 uppercase">Version SHA-256</div>
+          <div className="font-mono text-xs font-semibold text-slate-800 mt-0.5 bg-slate-100 px-2.5 py-1 rounded border border-slate-200">
+            {query.data.version.slice(0, 16)}...
           </div>
         </div>
       </div>
@@ -178,24 +171,21 @@ export function Rules(): React.ReactElement {
         </table>
       </section>
 
-      {/* Raw YAML Console */}
-      <section className="eds-card overflow-hidden border-slate-800 bg-slate-950 text-slate-200 shadow-lg">
-        <div className="px-5 py-3.5 bg-navy-950 border-b border-navy-800 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-teal-400" />
-            <span className="font-mono text-xs font-bold text-white uppercase tracking-wider">
-              server/rules.yaml (Immutable Startup Source)
-            </span>
-          </div>
+      {/* Raw YAML Configuration */}
+      <section className="eds-card overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          <span className="font-mono text-xs font-semibold text-slate-700">
+            server/rules.yaml (Active Configuration)
+          </span>
           <button
             onClick={handleCopy}
-            className="px-3 py-1 rounded text-xs font-bold bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="px-2.5 py-1 rounded text-xs font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors"
           >
-            {copied ? 'Copied!' : 'Copy YAML'}
+            {copied ? 'Copied' : 'Copy'}
           </button>
         </div>
 
-        <pre className="p-6 font-mono text-xs text-teal-300 leading-relaxed overflow-x-auto whitespace-pre-wrap">
+        <pre className="p-5 font-mono text-xs text-slate-700 bg-slate-50/50 leading-relaxed overflow-x-auto whitespace-pre-wrap">
           {query.data.yamlText}
         </pre>
       </section>

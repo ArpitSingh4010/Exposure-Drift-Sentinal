@@ -57,28 +57,21 @@ export function Audit(): React.ReactElement {
   const entries = query.data ?? [];
 
   return (
-    <div className="p-6 lg:p-8 eds-canvas min-h-full space-y-6 fade-in">
+    <div className="p-6 lg:p-8 space-y-6 fade-in max-w-7xl">
       {/* Header */}
-      <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
-              Compliance & Governance
-            </span>
-            <span className="text-xs text-slate-400">&bull;</span>
-            <span className="text-xs text-slate-500 font-medium">Append-Only MongoDB Ledger</span>
-          </div>
-          <h1 className="text-3xl font-heading font-extrabold text-slate-900 mt-1 tracking-tight">
+          <h1 className="text-2xl font-heading font-semibold text-slate-900 tracking-tight">
             Audit Trail
           </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
-            Every ingested signal, score evaluation, underwriter transition, and portfolio breach writes an unalterable audit log document.
+          <p className="text-xs text-slate-500 mt-1">
+            System record of signal ingests, rule evaluations, underwriter decisions, and appetite breaches.
           </p>
         </div>
 
         <div className="text-right">
-          <span className="text-xs text-slate-400 uppercase font-semibold">Total Audited Events</span>
-          <div className="text-2xl font-heading font-extrabold text-slate-900">
+          <div className="text-[11px] font-medium text-slate-500 uppercase">Total Entries</div>
+          <div className="text-2xl font-heading font-semibold text-slate-900">
             {entries.length}
           </div>
         </div>
