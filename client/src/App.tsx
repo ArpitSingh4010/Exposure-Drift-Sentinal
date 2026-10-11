@@ -24,7 +24,7 @@ export default function App(): React.ReactElement {
           <div className="flex flex-1 overflow-hidden">
             <Sidebar />
 
-            <main className="flex-1 overflow-y-auto flex flex-col bg-gray-50">
+            <main className="flex-1 overflow-y-auto flex flex-col eds-canvas">
               <Routes>
                 <Route path="/" element={<Navigate to="/desktop" replace />} />
                 <Route path="/desktop" element={<Desktop />} />

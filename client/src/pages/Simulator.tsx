@@ -1,277 +1,308 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { runScenario, resetDemo, type SimulatorResult } from '@/api/client';
 import { SeverityChip } from '@/components/SeverityChip';
 import { useUserStore } from '@/hooks/useUserStore';
 
-interface ScenarioInfo {
-  id: string;
+interface ScenarioMeta {
+  name: string;
   label: string;
+  tag: string;
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
   description: string;
-  icon: string;
+  expectedResult: string;
 }
 
-const SCENARIOS: ScenarioInfo[] = [
+const SCENARIOS: ScenarioMeta[] = [
   {
-    id: 'new_facility',
-    label: 'New facility discovered',
-    description: 'A third location is discovered for the demo policy in flood zone AE. Fires R1 (TIV +35%), R2 (new location), R3 (high-risk zone), and R5 (combined escalation). Expected: HIGH severity, portfolio breach.',
-    icon: '\u{1F3ED}',
+    name: 'new_facility',
+    label: 'New Facility Discovered',
+    tag: 'Headline Demo',
+    severity: 'HIGH',
+    description: '3rd location in Savannah GA ($1.4M TIV) in flood zone AE (score 8). Total TIV moves to $5.4M (+35%). Pushes SE flood share to ~20.07%, crossing the 20% cap.',
+    expectedResult: 'Fires R1 (high) + R2 + R3 + R5 -> Severity HIGH. Portfolio breach banner displayed.',
   },
   {
-    id: 'tiv_increase',
-    label: 'TIV increase',
+    name: 'tiv_increase',
+    label: 'TIV Increase on Existing Location',
+    tag: 'TIV Drift',
+    severity: 'MEDIUM',
     description: "An existing location's TIV changes to $2M. Evaluates R1 thresholds based on percentage change. Lower-severity result than the new_facility scenario.",
-    icon: '\u{1F4C8}',
+    expectedResult: 'Fires R1 -> Severity MEDIUM or LOW depending on percentage. No breach.',
   },
   {
-    id: 'flood_zone_update',
-    label: 'Flood zone update',
-    description: "A flood hazard feed reports a location's zone has changed to AE (score 8). Fires R3 and/or R4 depending on the delta from the current snapshot.",
-    icon: '\u{1F30A}',
+    name: 'flood_zone_update',
+    label: 'Flood Hazard Re-mapping',
+    tag: 'FEMA Update',
+    severity: 'HIGH',
+    description: 'Existing facility re-mapped from safe zone X to high-hazard AE (score 8). Demonstrates hazard-feed-driven drift without TIV change.',
+    expectedResult: 'Fires R3 (zone worsened into high-risk AE) -> Severity HIGH.',
   },
   {
-    id: 'verify_first_case',
-    label: 'Verify-first case',
-    description: 'A signal arrives with only "Acme" as the insured name - no policy ID. Entity resolution returns a low-confidence match, so the event is created with verifyFirst=true.',
-    icon: '\u{1F50D}',
+    name: 'verify_first_case',
+    label: 'Ambiguous Entity Match',
+    tag: 'Confidence Gate',
+    severity: 'MEDIUM',
+    description: 'Signal for Acme with ambiguous legal name and address variants. Entity match confidence falls below 0.75 threshold.',
+    expectedResult: 'Event created with verifyFirst=true. Activity prefixed with "Verify match before review".',
   },
   {
-    id: 'noise_small_change',
-    label: 'Noise (small change)',
-    description: 'A minor TIV adjustment that falls below the R1 threshold. May produce a LOW severity event or no event at all, demonstrating the noise filter.',
-    icon: '\u{1F4C9}',
+    name: 'noise_small_change',
+    label: 'Sub-Threshold Noise Signal',
+    tag: 'Noise Filter',
+    severity: 'LOW',
+    description: 'Tiny TIV change (+2%) well below the 10% materiality cutoff. No flood hazard change.',
+    expectedResult: 'Score = 0 -> suppressed as immaterial noise. No event or activity created.',
   },
   {
-    id: 'duplicate_signal',
-    label: 'Duplicate signal',
-    description: 'The new_facility signal is sent twice. The second submission is deduplicated - merged into the existing open event instead of creating a new one.',
-    icon: '\u{267B}\u{FE0F}',
+    name: 'duplicate_signal',
+    label: 'Duplicate Signal Deduplication',
+    tag: 'Dedupe / E11000',
+    severity: 'HIGH',
+    description: 'Submits the same signal twice in rapid succession. Exercises the partial unique index on open events.',
+    expectedResult: 'Second signal merges into the existing open event; appends evidence without creating duplicate tickets.',
   },
 ];
 
 export function Simulator(): React.ReactElement {
+  const { userId } = useUserStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { userId } = useUserStore();
+
   const [policyId, setPolicyId] = useState('POL-100245');
-  const [result, setResult] = useState<SimulatorResult | null>(null);
-  const [steps, setSteps] = useState<string[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [selectedScenario, setSelectedScenario] = useState('new_facility');
+  const [running, setRunning] = useState(false);
   const [resetting, setResetting] = useState(false);
-  const [error, setError] = useState('');
-  const [activeScenario, setActiveScenario] = useState('');
+  const [lastResult, setLastResult] = useState<SimulatorResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [resetMessage, setResetMessage] = useState<string | null>(null);
 
-  async function run(name: string): Promise<void> {
-    setBusy(true);
-    setError('');
-    setActiveScenario(name);
-    setResult(null);
-    setSteps([]);
-    try {
-      const res = await runScenario(userId, name, policyId);
-      setResult(res);
-      setSteps(res.steps);
-      await queryClient.invalidateQueries();
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Scenario failed');
-    } finally {
-      setBusy(false);
-    }
-  }
+  const activeScenarioMeta = SCENARIOS.find((s) => s.name === selectedScenario) ?? SCENARIOS[0]!;
 
-  async function handleReset(): Promise<void> {
-    setResetting(true);
-    setError('');
-    setResult(null);
-    setSteps([]);
-    setActiveScenario('');
+  const handleRun = async (scenarioName = selectedScenario) => {
+    setRunning(true);
+    setError(null);
+    setResetMessage(null);
     try {
-      await resetDemo(userId);
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      await queryClient.invalidateQueries();
-      setSteps([
-        'Demo database reset to seed state.',
-        'All drift events, activities, and audit entries cleared.',
-        'Portfolio exposure restored to baseline.',
+      const result = await runScenario(userId, scenarioName, policyId.trim());
+      setLastResult(result);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['events'] }),
+        queryClient.invalidateQueries({ queryKey: ['activities'] }),
+        queryClient.invalidateQueries({ queryKey: ['portfolio'] }),
+        queryClient.invalidateQueries({ queryKey: ['audit'] }),
       ]);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Reset failed');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Scenario execution failed');
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const handleReset = async () => {
+    setResetting(true);
+    setError(null);
+    setResetMessage(null);
+    setLastResult(null);
+    try {
+      const res = await resetDemo(userId);
+      setResetMessage(res.message);
+      setTimeout(async () => {
+        await queryClient.invalidateQueries();
+      }, 5000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Reset failed');
     } finally {
       setResetting(false);
     }
-  }
+  };
 
-  const event = result?.event ?? null;
+  const generatedEventId =
+    lastResult?.event && typeof lastResult.event === 'object' && 'eventId' in lastResult.event
+      ? String(lastResult.event.eventId)
+      : null;
 
   return (
-    <div className="p-5 lg:p-6 fade-in space-y-5">
-      {/* Header */}
-      <div className="flex items-end justify-between gap-4 flex-wrap">
+    <div className="p-6 lg:p-8 eds-canvas min-h-full space-y-6 fade-in">
+      {/* Page Header */}
+      <div className="flex flex-wrap items-end justify-between gap-4 pb-2">
         <div>
-          <p className="text-xs uppercase tracking-widest text-teal-700 font-semibold">Demo tool</p>
-          <h1 className="text-2xl font-semibold text-navy-950 mt-1">Signal Simulator</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Run deterministic local signals without calling an external feed. Each scenario submits a signal
-            through the full ingestion pipeline.
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-teal-50 text-teal-700 border border-teal-200">
+              Demo Intelligence Tool
+            </span>
+            <span className="text-xs text-slate-400">&bull;</span>
+            <span className="text-xs text-slate-500 font-medium">Deterministic Signal Injection</span>
+          </div>
+          <h1 className="text-3xl font-heading font-extrabold text-slate-900 mt-1 tracking-tight">
+            Signal Simulator
+          </h1>
+          <p className="text-sm text-slate-500 mt-1 max-w-2xl">
+            Simulate asynchronous external data feeds (building permits, municipal assessor updates, FEMA flood zone re-mappings) without live external API dependencies.
           </p>
         </div>
+
+        {/* Reset Demo Button */}
         <button
-          type="button"
-          onClick={() => void handleReset()}
-          disabled={resetting || busy}
-          className="px-4 py-2 text-sm rounded border border-red-300 text-red-700 bg-red-50
-                     hover:bg-red-100 disabled:opacity-50 transition-colors flex items-center gap-2"
+          onClick={handleReset}
+          disabled={resetting}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm disabled:opacity-50"
         >
           {resetting ? (
             <>
-              <span className="inline-block w-4 h-4 border-2 border-red-300 border-t-red-700 rounded-full animate-spin" />
-              Resetting...
+              <div className="w-3.5 h-3.5 border-2 border-slate-700 border-t-transparent rounded-full animate-spin" />
+              Resetting Database...
             </>
           ) : (
             <>
-              <span aria-hidden="true">{'\u21BB'}</span> Reset demo
+              <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Reset Demo Baseline ($300M TIV)
             </>
           )}
         </button>
       </div>
 
-      {/* Policy selector */}
-      <section className="eds-card p-5">
-        <label className="block text-sm font-medium text-gray-700">
-          Target policy
-          <input
-            value={policyId}
-            onChange={(e) => setPolicyId(e.target.value)}
-            className="block mt-1 border border-gray-300 rounded px-3 py-2 w-full max-w-sm text-sm
-                       focus:ring-2 focus:ring-teal-400 focus:border-teal-400 outline-none transition-shadow"
-            placeholder="POL-100245"
-          />
-        </label>
-        <p className="text-xs text-gray-500 mt-2">
-          Default is POL-100245 (Northwind Fabrication, South-East). You can target any seeded policy.
-        </p>
-      </section>
-
-      {/* Scenario grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {SCENARIOS.map((scenario) => (
-          <button
-            key={scenario.id}
-            type="button"
-            disabled={busy || resetting}
-            onClick={() => void run(scenario.id)}
-            className={`eds-card p-4 text-left hover:shadow-card-hover hover:border-teal-400
-                        disabled:opacity-50 transition-all duration-200 group
-                        ${activeScenario === scenario.id && !busy ? 'border-teal-500 bg-teal-50/30' : ''}`}
-          >
-            <div className="flex items-start gap-3">
-              <span className="text-2xl" role="img" aria-label={scenario.label}>{scenario.icon}</span>
-              <div className="flex-1 min-w-0">
-                <div className="font-mono text-xs text-navy-900 group-hover:text-teal-700 transition-colors">
-                  {scenario.id}
-                </div>
-                <div className="text-sm font-medium text-gray-900 mt-1">{scenario.label}</div>
-                <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{scenario.description}</p>
-              </div>
-            </div>
-          </button>
-        ))}
-      </section>
-
-      {/* Error banner */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm slide-in">
-          <strong>Error:</strong> {error}
+      {resetMessage && (
+        <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/70 text-xs font-bold text-teal-900 flex items-center gap-2 shadow-sm">
+          <span className="pulse-dot pulse-dot-green" />
+          {resetMessage}
         </div>
       )}
 
-      {/* Step log */}
-      <section className="eds-card overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-          <div>
-            <h2 className="font-semibold text-gray-900">Pipeline step log</h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Signal &rarr; resolve &rarr; detect &rarr; score &rarr; event &rarr; activity
-            </p>
-          </div>
-          {busy && (
-            <span className="inline-block w-4 h-4 border-2 border-teal-300 border-t-teal-700 rounded-full animate-spin" />
-          )}
+      {error && (
+        <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-xs text-red-700 font-semibold shadow-sm">
+          {error}
         </div>
-        {steps.length === 0 ? (
-          <div className="p-10 text-center text-sm text-gray-500">
-            Choose a scenario above to run it. Each step in the pipeline will appear here.
-          </div>
-        ) : (
-          <div className="p-4 space-y-3">
-            {steps.map((step, index) => (
-              <div
-                key={`${step}-${index}`}
-                className="flex gap-3 items-start slide-in"
-                style={{ animationDelay: `${index * 60}ms` }}
-              >
-                <span className="w-6 h-6 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                  {index + 1}
+      )}
+
+      {/* Target Policy Selection Bar */}
+      <div className="eds-card p-5 bg-white flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="eds-label text-slate-400">Target Policy:</span>
+          <input
+            type="text"
+            value={policyId}
+            onChange={(e) => setPolicyId(e.target.value)}
+            className="font-mono text-sm font-bold text-navy-950 px-3 py-1.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white w-44 focus:border-teal-500"
+          />
+          <span className="text-xs text-slate-500 hidden sm:inline">
+            (Demo Commercial Account: <strong>Northwind Fabrication</strong>)
+          </span>
+        </div>
+
+        <button
+          onClick={() => handleRun()}
+          disabled={running}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-teal-500 to-cyan-600 text-white shadow-glow hover:opacity-95 transition-all disabled:opacity-50"
+        >
+          {running ? (
+            <>
+              <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Processing Signal & Rules...
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              </svg>
+              Run Scenario: {activeScenarioMeta.label}
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Scenario Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {SCENARIOS.map((sc) => {
+          const isSelected = selectedScenario === sc.name;
+
+          return (
+            <div
+              key={sc.name}
+              onClick={() => setSelectedScenario(sc.name)}
+              className={`eds-card p-5 cursor-pointer space-y-3 transition-all relative overflow-hidden ${
+                isSelected
+                  ? 'border-teal-500 ring-2 ring-teal-400/40 bg-teal-50/10 shadow-md'
+                  : 'hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 uppercase tracking-wider">
+                    {sc.tag}
+                  </span>
+                  <h3 className="font-heading font-bold text-base text-slate-900 mt-1">
+                    {sc.label}
+                  </h3>
+                </div>
+                <SeverityChip severity={sc.severity} />
+              </div>
+
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {sc.description}
+              </p>
+
+              <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500 space-y-1">
+                <div className="font-semibold text-slate-700">Expected Result:</div>
+                <div className="text-teal-800 font-medium">{sc.expectedResult}</div>
+              </div>
+
+              <div className="pt-2 flex items-center justify-between">
+                <span className="text-[11px] font-mono font-bold text-slate-400">
+                  {sc.name}
                 </span>
-                <span className="text-sm text-gray-800 pt-0.5">{step}</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedScenario(sc.name);
+                    void handleRun(sc.name);
+                  }}
+                  disabled={running}
+                  className="px-3 py-1 rounded-lg text-[11px] font-bold bg-navy-900 text-white hover:bg-navy-800 transition-colors"
+                >
+                  Run Scenario
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Live Terminal Step Log */}
+      {lastResult && (
+        <section className="eds-card overflow-hidden border-navy-900 bg-slate-950 text-slate-200 shadow-xl">
+          <div className="px-5 py-3.5 bg-navy-900/90 border-b border-navy-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                Execution Log: {lastResult.scenario}
+              </span>
+            </div>
+            {generatedEventId && (
+              <button
+                onClick={() => navigate(`/events/${generatedEventId}`)}
+                className="px-3 py-1 rounded-md text-xs font-bold bg-teal-500 text-navy-950 hover:bg-teal-400 transition-colors shadow-sm"
+              >
+                Inspect Event {generatedEventId} &rarr;
+              </button>
+            )}
+          </div>
+
+          <div className="p-5 font-mono text-xs space-y-2 max-h-72 overflow-y-auto">
+            {lastResult.steps.map((step, idx) => (
+              <div key={idx} className="flex items-start gap-2 text-slate-300">
+                <span className="text-slate-500 font-semibold select-none">[{idx + 1}]</span>
+                <span className={step.includes('breach') || step.includes('created') ? 'text-teal-300 font-bold' : ''}>
+                  {step}
+                </span>
               </div>
             ))}
           </div>
-        )}
-      </section>
-
-      {/* Event result card */}
-      {event && (
-        <section className="eds-card overflow-hidden slide-in">
-          <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">Created / merged event</h2>
-            <SeverityChip severity={event.severity} />
-          </div>
-          <div className="p-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <div className="eds-label">Event ID</div>
-              <div className="font-mono text-xs text-navy-900 mt-1">{event.eventId}</div>
-            </div>
-            <div>
-              <div className="eds-label">Status</div>
-              <div className="mt-1"><span className="chip chip-open">{event.status.replace('_', ' ')}</span></div>
-            </div>
-            <div>
-              <div className="eds-label">Score</div>
-              <div className="text-lg font-semibold text-navy-950 mt-1">{event.score} pts</div>
-            </div>
-            <div>
-              <div className="eds-label">Portfolio breach</div>
-              <div className="mt-1">
-                {event.portfolioBreach
-                  ? <span className="chip chip-high">Breach</span>
-                  : <span className="text-sm text-gray-600">Within appetite</span>}
-              </div>
-            </div>
-          </div>
-          <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-            <div className="text-xs text-gray-500">
-              Rules fired: {event.ruleBreakdown.map((r) => r.ruleId).join(', ')}
-            </div>
-            <button
-              type="button"
-              onClick={() => navigate(`/events/${event.eventId}`)}
-              className="text-sm text-teal-700 hover:underline font-medium"
-            >
-              Open event detail &rarr;
-            </button>
-          </div>
         </section>
-      )}
-
-      {/* Duplicate info */}
-      {result?.duplicate && (
-        <div className="eds-card p-4 text-sm text-gray-700 slide-in">
-          <strong>Duplicate signal:</strong> The second signal was merged into the existing event.
-          No new event was created - the dedup logic identified the same idempotency key.
-        </div>
       )}
     </div>
   );
