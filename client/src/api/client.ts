@@ -158,6 +158,19 @@ export function fetchRules(userId: string | null): Promise<{ version: string; ya
   return request<{ version: string; yamlText: string }>('/rules', userId);
 }
 
-export function runScenario(userId: string | null, name: string, policyId: string): Promise<{ scenario: string; steps: string[]; event: unknown }> {
-  return request<{ scenario: string; steps: string[]; event: unknown }>(`/simulator/scenarios/${name}`, userId, { method: 'POST', body: JSON.stringify({ policyId }) });
+export function runScenario(userId: string | null, name: string, policyId: string): Promise<SimulatorResult> {
+  return request<SimulatorResult>(`/simulator/scenarios/${name}`, userId, { method: 'POST', body: JSON.stringify({ policyId }) });
+}
+
+export interface SimulatorResult {
+  scenario: string;
+  policyId: string;
+  steps: string[];
+  signal: Record<string, unknown>;
+  event: EventRecord | null;
+  duplicate?: { event: EventRecord | null } | null;
+}
+
+export function resetDemo(userId: string | null): Promise<{ message: string }> {
+  return request<{ message: string }>('/admin/reset-demo', userId, { method: 'POST' });
 }

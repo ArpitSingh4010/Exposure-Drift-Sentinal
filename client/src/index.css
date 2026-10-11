@@ -72,11 +72,11 @@ html, body, #root {
 .eds-value { @apply text-sm text-gray-900 font-medium; }
 
 /* ── Transition helpers ──────────────────────────────────────────────────── */
-.fade-in  { animation: fadeIn  0.15s ease-out; }
-.slide-in { animation: slideIn 0.20s ease-out; }
+.fade-in  { animation: fadeIn  0.2s ease-out both; }
+.slide-in { animation: slideIn 0.25s ease-out both; }
 
 @keyframes fadeIn  { from { opacity: 0; }           to { opacity: 1; }          }
-@keyframes slideIn { from { opacity: 0; transform: translateY(4px); }
+@keyframes slideIn { from { opacity: 0; transform: translateY(6px); }
                      to   { opacity: 1; transform: translateY(0);    }          }
 
 /* ── Top bar ─────────────────────────────────────────────────────────────── */
@@ -86,11 +86,12 @@ html, body, #root {
   @apply flex items-center h-12 px-4 gap-6 shadow-topbar select-none;
 }
 .topbar-tab {
-  @apply text-sm font-medium px-3 py-1 rounded transition-colors duration-150
+  @apply text-sm font-medium px-3 py-1.5 rounded transition-all duration-200
          text-navy-300 hover:text-white hover:bg-white/10;
 }
 .topbar-tab.active {
   @apply text-white bg-white/15;
+  box-shadow: inset 0 -2px 0 0 var(--color-accent);
 }
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
@@ -104,3 +105,44 @@ html, body, #root {
 .eds-footer {
   @apply text-center text-xs text-gray-400 py-3 border-t border-gray-200 mt-auto;
 }
+
+/* ── Card micro-interactions ─────────────────────────────────────────────── */
+.eds-card {
+  @apply transition-shadow duration-200;
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.animate-spin { animation: spin 0.7s linear infinite; }
+
+/* ── Focus ring for interactive elements ─────────────────────────────────── */
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  @apply outline-none ring-2 ring-teal-400 ring-offset-1;
+}
+
+/* ── Staggered list animation ────────────────────────────────────────────── */
+.stagger-in > * {
+  animation: slideIn 0.25s ease-out both;
+}
+.stagger-in > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-in > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-in > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-in > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-in > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-in > *:nth-child(6) { animation-delay: 200ms; }
+
+/* ── Progress bar shimmer ────────────────────────────────────────────────── */
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+

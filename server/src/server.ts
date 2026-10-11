@@ -2,8 +2,9 @@ import mongoose from 'mongoose';
 import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
-import { ensureIndexes } from './seed/index.js';
+import { ensureIndexes, seedDb } from './seed/index.js';
 import { loadAndStoreRules } from './config/rulesLoader.js';
+import { Policy } from './models/Policy.js';
 
 async function main(): Promise<void> {
   // ── Connect to MongoDB ────────────────────────────────────────────────────
@@ -15,7 +16,12 @@ async function main(): Promise<void> {
   logger.info('MongoDB connected');
   await ensureIndexes();
   await loadAndStoreRules();
-  logger.info('Indexes and active rules ready');
+  const policyCount = await Policy.countDocuments();
+  if (policyCount === 0) {
+    logger.info('Database empty — running initial deterministic seed');
+    await seedDb();
+  }
+  logger.info('Indexes, active rules, and data ready');
 
   // ── Start HTTP server ────────────────────────────────────────────────────
   const app = createApp();

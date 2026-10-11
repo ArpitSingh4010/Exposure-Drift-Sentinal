@@ -60,18 +60,6 @@ export function createApp(): express.Application {
   app.use('/rules', rulesRouter);
   app.use('/simulator', simulatorRouter);
 
-  // TODO(P2+): mount remaining routers here as phases progress
-  // app.use('/signals', signalsRouter);
-  // app.use('/events', eventsRouter);
-  // app.use('/activities', activitiesRouter);
-  // app.use('/policies', policiesRouter);
-  // app.use('/portfolio', portfolioRouter);
-  // app.use('/audit', auditRouter);
-  // app.use('/rules', rulesRouter);
-  // app.use('/simulator', simulatorRouter);
-  // app.use('/admin', adminRouter);
-  // app.use('/pc', guidewireMockRouter);
-
   // ── Error handler (must be last) ──────────────────────────────────────────
   app.use(errorHandler);
 
