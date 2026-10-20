@@ -98,72 +98,77 @@ flowchart TD
 
 ---
 
-## 🎯 Underwriting Rules & Materiality Catalog
+## 🎯 How the Rules Work (Plain English Guide)
 
-EDS evaluates incoming signals through an explainable, deterministic underwriting rules engine. Rather than relying on non-deterministic black-box models, all thresholds, scoring tiers, and escalation paths are strictly defined and auditable.
+When a business changes in the real world, EDS checks **6 simple rules** to decide whether an underwriter needs to be alerted.
 
-### 📋 Active Rule Specifications
-
-#### `R1_TIV_INCREASE` — Total Insured Value Growth
-* **Category**: Valuation Drift
-* **Formula**: `ΔTIV% = ((TIV_candidate - TIV_baseline) / TIV_baseline) × 100`
-* **Trigger Criteria**:
-  - **Moderate Increase (10.0% – 25.0%)**: **+3 points** $\rightarrow$ Medium Severity (5 business days SLA)
-  - **Significant Increase (≥ 25.0%)**: **+5 points** $\rightarrow$ High Severity (2 business days SLA)
-  - **Noise Floor (< 10.0%)**: **0 points** (Filtered out as ordinary index adjustments)
-* **Real-World Example**: A factory re-assessment increases TIV from $2.84M to $4.24M (+49.2%) $\rightarrow$ Triggers Significant tier (+5 pts).
-* **PolicyCenter Action**: Update building valuation schedule; recompute base property rates.
-
-#### `R2_NEW_LOCATION` — Schedule Expansion / Unreported Facility
-* **Category**: Schedule Drift
-* **Formula**: `Location_Address ∉ Bound_Policy_Locations[]`
-* **Trigger Criteria**: Any commercial parcel, warehouse, or retail facility detected via building permit or tax assessor filings that does not exist in the policy schedule.
-* **Score**: **+3 points**
-* **Real-World Example**: Northwind Fabrication builds an unlisted 3rd warehouse on Savannah Highway ($1.4M TIV).
-* **PolicyCenter Action**: Request COPE inspection; prepare Location Addition Endorsement.
-
-#### `R3_HIGH_FLOOD_ZONE` — FEMA Catastrophe Hazard Re-mapping
-* **Category**: Hazard Drift
-* **Formula**: `Flood_Zone ∈ {"A", "AE", "V"}`
-* **Trigger Criteria**: Property is newly situated in or re-zoned into a Special Flood Hazard Area (SFHA). Ranked strictly: `Zone X < Zone B < Zone A < Zone AE < Zone V`.
-* **Score**: **+5 points** (Automatically forces High Severity)
-* **Real-World Example**: FEMA flood map revision shifts existing facility parcel from minimal risk Zone X to 100-year floodplain Zone AE.
-* **PolicyCenter Action**: Verify flood sub-limits; ensure mandatory National Flood Insurance Program (NFIP) compliance.
-
-#### `R4_FLOOD_SCORE_WORSENED` — Environmental Deterioration
-* **Category**: Hazard Drift
-* **Formula**: `ΔFloodScore = (Score_candidate - Score_baseline) ≥ 2`
-* **Trigger Criteria**: Numerical catastrophe score increases by 2 or more points on a 1–10 hazard vulnerability scale.
-* **Score**: **+3 points**
-* **Real-World Example**: Storm barrier erosion elevates local coastal vulnerability score from 4 to 7 (Δ = +3).
-* **PolicyCenter Action**: Review engineering inspection reports; evaluate protective safeguards and deductibles.
-
-#### `R5_COMBINED_ESCALATION` — Compound Risk Override
-* **Category**: Compound Escalation
-* **Formula**: `R2_NEW_LOCATION fires AND R3_HIGH_FLOOD_ZONE fires → FORCE HIGH`
-* **Trigger Criteria**: When a new commercial location is added and is located in a high-hazard flood zone, EDS unconditionally forces the event to **HIGH SEVERITY**, bypassing point summation.
-* **Score**: **FORCE HIGH** (2 Business Days SLA)
-* **Real-World Example**: New warehouse detected in Savannah GA + Zone AE $\rightarrow$ Forces immediate High severity review.
-* **PolicyCenter Action**: Mandatory escalation to Senior Underwriter (`USR-002`); initiate treaty reinsurance clearance.
-
-#### `R6_PORTFOLIO_BREACH` — Risk Appetite Concentration Gate
-* **Category**: Macro Appetite
-* **Formula**: `Territory_Flood_TIV / Total_Portfolio_TIV > 0.2000 (20.00% Cap)`
-* **Trigger Criteria**: Aggregate regional exposure in high-hazard flood zones crosses the carrier's 20.00% appetite ceiling.
-* **Outcome**: **Appetite Breach Flag** displayed across the desktop banner and event terminals.
-* **Real-World Example**: South-East flood TIV expands to 20.07% of the total $300M portfolio basis.
-* **PolicyCenter Action**: Restrict binding authority in territory; notify executive risk committee.
+### 💡 The 30-Second Scoring Rule:
+- 🔴 **High Priority (5+ points)**: Urgent review needed within **2 business days** (routed to Senior Underwriter).
+- 🟡 **Medium Priority (3–4 points)**: Review within **5 business days**.
+- 🟢 **Low Priority (1–2 points)**: Minor detail, review during annual renewal (**10 business days**).
+- ⚪ **Ignored (0 points)**: Tiny changes under 10% are suppressed as routine background noise so underwriters aren't spammed.
 
 ---
 
-### ⚖️ Severity Tiers & SLA Escalation Matrix
+### 📋 The 6 Rules Explained Simply
 
-| Severity Tier | Score Threshold | SLA Due Date | Routing | PolicyCenter Action |
+#### 1. 🏢 Rule 1: Property Value Jump (`R1_TIV_INCREASE`)
+* **What happened?** The insured building or equipment became significantly more valuable than what the insurance policy currently covers.
+* **When does it trigger?**
+  - **Medium Alert (+3 pts)**: Property value increased by **10% to 25%**.
+  - **High Alert (+5 pts)**: Property value jumped by **25% or more**.
+  - **Ignored (0 pts)**: Tiny changes under 10% are considered normal inflation and ignored.
+* **Why it matters**: If a fire burns the factory down today, the payout would be millions higher than what the company paid premiums for.
+* **Real-World Story**: A factory bought new robotic manufacturing lines. Tax assessor records show their total property value leaped from $2.8M to $4.2M (+49%).
+* **What happens next**: The underwriter adjusts the policy value and recalculates premium so the customer has sufficient coverage.
+
+#### 2. 🏗️ Rule 2: Unreported New Building Discovered (`R2_NEW_LOCATION`)
+* **What happened?** A new facility or warehouse was discovered that isn't written anywhere on the insurance policy.
+* **When does it trigger?** Public municipal building permits or tax filings reveal an address belonging to the company that isn't on the policy. (**+3 points**)
+* **Why it matters**: If an accident or explosion happens at this new location, the insurer has zero safety inspection records on file.
+* **Real-World Story**: A policyholder constructs a 3rd commercial warehouse on Savannah Highway ($1.4M value), but forgets to notify their insurance agent.
+* **What happens next**: An underwriter inspects the building specifications and officially binds an endorsement to add the property.
+
+#### 3. 🌊 Rule 3: Danger Flood Zone Mapped (`R3_HIGH_FLOOD_ZONE`)
+* **What happened?** Government flood maps updated: the building is now located in a severe flood danger zone.
+* **When does it trigger?** FEMA officially re-maps the building's parcel into high-hazard flood areas (Zone A, AE, or coastal Zone V). (**+5 points $\rightarrow$ High Alert**)
+* **Why it matters**: The building is now at high risk of water damage during the next major storm or hurricane season.
+* **Real-World Story**: A warehouse originally sat on safe dry ground (Zone X). FEMA revised the local river basin boundaries, and the parcel is now inside the 100-year floodplain (Zone AE).
+* **What happens next**: The underwriter verifies flood coverage sub-limits and ensures mandatory federal flood insurance compliance.
+
+#### 4. 📈 Rule 4: Flood Risk Score Got Worse (`R4_FLOOD_SCORE_WORSENED`)
+* **What happened?** Environmental risk deteriorated by 2 or more points on a 1–10 hazard scale.
+* **When does it trigger?** The location's flood risk index worsens by $\ge 2$ points since the policy was bound. (**+3 points**)
+* **Why it matters**: Local environmental conditions (like sea level rise or damaged seawalls) quietly increased the risk of claims without any physical changes to the building itself.
+* **Real-World Story**: Coastal erosion washed away nearby dunes, increasing the warehouse's flood vulnerability score from 4/10 to 7/10.
+* **What happens next**: The underwriter reviews engineering surveys and requires storm barriers or higher deductibles.
+
+#### 5. ⚡ Rule 5: Double Trouble — New Building in a Flood Zone (`R5_COMBINED_ESCALATION`)
+* **What happened?** Both Rule 2 and Rule 3 occurred at the same time: an uninspected new building was placed directly in a severe flood zone!
+* **When does it trigger?** Whenever **Rule 2 (New Building)** and **Rule 3 (Danger Flood Zone)** fire on the same policy.
+* **Outcome**: **UNCONDITIONALLY FORCES HIGH PRIORITY** (Bypasses point math, 2-day urgent SLA).
+* **Why it matters**: This is the worst-case scenario: a brand-new, uninspected building placed in severe harm's way.
+* **Real-World Story**: The customer built a new warehouse on Savannah Highway, and it happens to be located right inside flood Zone AE near the river.
+* **What happens next**: Automatically routed to Marcus Williams (Senior Underwriter) for urgent treaty review before claims happen.
+
+#### 6. 🛑 Rule 6: Company Safe Limit Exceeded (`R6_PORTFOLIO_BREACH`)
+* **What happened?** The insurance company has too many flood-prone buildings concentrated in one geographic region (exceeding 20%).
+* **When does it trigger?** Total property value in flood danger zones exceeds **20.00%** of the company's entire national portfolio ($300M total basis).
+* **Outcome**: Triggers a **Red Warning Banner** and freezes binding authority in that territory.
+* **Why it matters**: An insurance company cannot put all its eggs in one basket. If too many coastal policies are in Florida/Georgia, one single hurricane could bankrupt the insurer.
+* **Real-World Story**: So many coastal policies were sold in the South-East that adding one more warehouse pushes the region to 20.07%, crossing the 20.00% safety limit.
+* **What happens next**: A red warning banner is displayed across all underwriter screens; no new policies can be bound in that territory without executive sign-off.
+
+---
+
+### ⚖️ Priority Levels & Underwriter Response Times
+
+| Priority Level | Score Required | Response Deadline | Assigned To | Underwriter Next Step |
 | :--- | :---: | :---: | :--- | :--- |
-| **HIGH** | $\ge 5$ pts (or R5 Override) | **2 Business Days** | Senior Underwriter (`USR-002`) | Review exposure immediately; re-rate or initiate treaty referral |
-| **MEDIUM** | $3\text{--}4$ pts | **5 Business Days** | Assigned Underwriter | Review candidate state; request additional documentation if unverified |
-| **LOW** | $1\text{--}2$ pts | **10 Business Days** | Assigned Underwriter | Note drift details for review during annual policy renewal cycle |
-| **IMMATERIAL**| $0$ pts | *Suppressed* | System Filter | Auto-suppressed as routine noise; zero tickets created |
+| 🔴 **HIGH** | $\ge 5$ pts (or Rule 5) | **2 Business Days** | Senior Underwriter (`USR-002`) | Review exposure immediately; adjust pricing or initiate treaty referral |
+| 🟡 **MEDIUM** | $3\text{--}4$ pts | **5 Business Days** | Assigned Underwriter | Review during normal weekly queue; request documents if needed |
+| 🟢 **LOW** | $1\text{--}2$ pts | **10 Business Days** | Assigned Underwriter | Note details on the account; check during annual renewal cycle |
+| ⚪ **IGNORED** | $0$ pts | *No action needed* | Filtered by System | Automatically suppressed as routine inflation noise |
 
 ---
 
