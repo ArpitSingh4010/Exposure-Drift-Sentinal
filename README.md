@@ -98,25 +98,72 @@ flowchart TD
 
 ---
 
-## 🎯 Deterministic Rules Catalog
+## 🎯 Underwriting Rules & Materiality Catalog
 
-All underwriting thresholds live in [`server/rules.yaml`](server/rules.yaml). A cryptographic SHA-256 hash is computed on boot to detect configuration tampering or updates.
+EDS evaluates incoming signals through an explainable, deterministic underwriting rules engine. Rather than relying on non-deterministic black-box models, all thresholds, scoring tiers, and escalation paths are strictly defined and auditable.
 
-| Rule ID | Name | Trigger Condition | Points | Action / SLA |
-| :--- | :--- | :--- | :---: | :--- |
-| **`R1_TIV_INCREASE`** | TIV Growth (Moderate) | Total policy value increases by $10\%\text{--}25\%$ | **+3** | MEDIUM severity (5 business days) |
-| **`R1_TIV_INCREASE`** | TIV Growth (Significant) | Total policy value increases by $\ge 25\%$ | **+5** | HIGH severity (2 business days) |
-| **`R2_NEW_LOCATION`** | Location Schedule Expansion | Discovered unlisted commercial address | **+3** | Review building permit & schedule |
-| **`R3_HIGH_FLOOD_ZONE`**| High Hazard Re-mapping | Enters FEMA Zone A, AE, or V | **+5** | HIGH severity & flood check |
-| **`R4_FLOOD_SCORE_WORSENED`** | Hazard Deterioration | Flood risk index worsens by $\ge 2$ points | **+3** | Re-evaluation required |
-| **`R5_COMBINED_ESCALATION`** | Compound Risk Override | New Location (R2) + High Flood (R3) fire | **FORCE HIGH** | Mandatory 2-day senior underwriting SLA |
-| **`R6_PORTFOLIO_BREACH`** | Aggregate Appetite Cap | Territory flood TIV exceeds $20.00\%$ portfolio cap | **BREACH** | Flags treaty restriction banner |
+### 📋 Active Rule Specifications
 
-### Scoring & Severity Tiers
-- **HIGH** ($\ge 5$ pts) $\rightarrow$ 2 Business Days SLA (Senior Underwriter review if breached).
-- **MEDIUM** ($3\text{--}4$ pts) $\rightarrow$ 5 Business Days SLA.
-- **LOW** ($1\text{--}2$ pts) $\rightarrow$ 10 Business Days SLA (Reviewed at renewal).
-- **IMMATERIAL** ($0$ pts) $\rightarrow$ Suppressed as baseline noise (no activity created).
+#### `R1_TIV_INCREASE` — Total Insured Value Growth
+* **Category**: Valuation Drift
+* **Formula**: `ΔTIV% = ((TIV_candidate - TIV_baseline) / TIV_baseline) × 100`
+* **Trigger Criteria**:
+  - **Moderate Increase (10.0% – 25.0%)**: **+3 points** $\rightarrow$ Medium Severity (5 business days SLA)
+  - **Significant Increase (≥ 25.0%)**: **+5 points** $\rightarrow$ High Severity (2 business days SLA)
+  - **Noise Floor (< 10.0%)**: **0 points** (Filtered out as ordinary index adjustments)
+* **Real-World Example**: A factory re-assessment increases TIV from $2.84M to $4.24M (+49.2%) $\rightarrow$ Triggers Significant tier (+5 pts).
+* **PolicyCenter Action**: Update building valuation schedule; recompute base property rates.
+
+#### `R2_NEW_LOCATION` — Schedule Expansion / Unreported Facility
+* **Category**: Schedule Drift
+* **Formula**: `Location_Address ∉ Bound_Policy_Locations[]`
+* **Trigger Criteria**: Any commercial parcel, warehouse, or retail facility detected via building permit or tax assessor filings that does not exist in the policy schedule.
+* **Score**: **+3 points**
+* **Real-World Example**: Northwind Fabrication builds an unlisted 3rd warehouse on Savannah Highway ($1.4M TIV).
+* **PolicyCenter Action**: Request COPE inspection; prepare Location Addition Endorsement.
+
+#### `R3_HIGH_FLOOD_ZONE` — FEMA Catastrophe Hazard Re-mapping
+* **Category**: Hazard Drift
+* **Formula**: `Flood_Zone ∈ {"A", "AE", "V"}`
+* **Trigger Criteria**: Property is newly situated in or re-zoned into a Special Flood Hazard Area (SFHA). Ranked strictly: `Zone X < Zone B < Zone A < Zone AE < Zone V`.
+* **Score**: **+5 points** (Automatically forces High Severity)
+* **Real-World Example**: FEMA flood map revision shifts existing facility parcel from minimal risk Zone X to 100-year floodplain Zone AE.
+* **PolicyCenter Action**: Verify flood sub-limits; ensure mandatory National Flood Insurance Program (NFIP) compliance.
+
+#### `R4_FLOOD_SCORE_WORSENED` — Environmental Deterioration
+* **Category**: Hazard Drift
+* **Formula**: `ΔFloodScore = (Score_candidate - Score_baseline) ≥ 2`
+* **Trigger Criteria**: Numerical catastrophe score increases by 2 or more points on a 1–10 hazard vulnerability scale.
+* **Score**: **+3 points**
+* **Real-World Example**: Storm barrier erosion elevates local coastal vulnerability score from 4 to 7 (Δ = +3).
+* **PolicyCenter Action**: Review engineering inspection reports; evaluate protective safeguards and deductibles.
+
+#### `R5_COMBINED_ESCALATION` — Compound Risk Override
+* **Category**: Compound Escalation
+* **Formula**: `R2_NEW_LOCATION fires AND R3_HIGH_FLOOD_ZONE fires → FORCE HIGH`
+* **Trigger Criteria**: When a new commercial location is added and is located in a high-hazard flood zone, EDS unconditionally forces the event to **HIGH SEVERITY**, bypassing point summation.
+* **Score**: **FORCE HIGH** (2 Business Days SLA)
+* **Real-World Example**: New warehouse detected in Savannah GA + Zone AE $\rightarrow$ Forces immediate High severity review.
+* **PolicyCenter Action**: Mandatory escalation to Senior Underwriter (`USR-002`); initiate treaty reinsurance clearance.
+
+#### `R6_PORTFOLIO_BREACH` — Risk Appetite Concentration Gate
+* **Category**: Macro Appetite
+* **Formula**: `Territory_Flood_TIV / Total_Portfolio_TIV > 0.2000 (20.00% Cap)`
+* **Trigger Criteria**: Aggregate regional exposure in high-hazard flood zones crosses the carrier's 20.00% appetite ceiling.
+* **Outcome**: **Appetite Breach Flag** displayed across the desktop banner and event terminals.
+* **Real-World Example**: South-East flood TIV expands to 20.07% of the total $300M portfolio basis.
+* **PolicyCenter Action**: Restrict binding authority in territory; notify executive risk committee.
+
+---
+
+### ⚖️ Severity Tiers & SLA Escalation Matrix
+
+| Severity Tier | Score Threshold | SLA Due Date | Routing | PolicyCenter Action |
+| :--- | :---: | :---: | :--- | :--- |
+| **HIGH** | $\ge 5$ pts (or R5 Override) | **2 Business Days** | Senior Underwriter (`USR-002`) | Review exposure immediately; re-rate or initiate treaty referral |
+| **MEDIUM** | $3\text{--}4$ pts | **5 Business Days** | Assigned Underwriter | Review candidate state; request additional documentation if unverified |
+| **LOW** | $1\text{--}2$ pts | **10 Business Days** | Assigned Underwriter | Note drift details for review during annual policy renewal cycle |
+| **IMMATERIAL**| $0$ pts | *Suppressed* | System Filter | Auto-suppressed as routine noise; zero tickets created |
 
 ---
 
