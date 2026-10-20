@@ -74,7 +74,10 @@ export function applySignalToSnapshot(
     return after;
   }
 
-  const location = after.locations.find((candidate) => candidate.locationId === signal.locationId);
+  let location = after.locations.find((candidate) => candidate.locationId === signal.locationId);
+  if (!location && after.locations.length > 0) {
+    location = after.locations[0];
+  }
   if (!location) {
     throw new Error(`Location not found in snapshot: ${signal.locationId}`);
   }

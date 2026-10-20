@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { runScenario, resetDemo, type SimulatorResult } from '@/api/client';
 import { SeverityChip } from '@/components/SeverityChip';
 import { useUserStore } from '@/hooks/useUserStore';
+import { usePolicies } from '@/hooks/useApi';
 
 interface ScenarioMeta {
   name: string;
@@ -69,6 +70,7 @@ export function Simulator(): React.ReactElement {
   const { userId } = useUserStore();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const policiesQuery = usePolicies();
 
   const [policyId, setPolicyId] = useState('POL-100245');
   const [selectedScenario, setSelectedScenario] = useState('new_facility');
@@ -78,7 +80,9 @@ export function Simulator(): React.ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [resetMessage, setResetMessage] = useState<string | null>(null);
 
+  const policies = policiesQuery.data ?? [];
   const activeScenarioMeta = SCENARIOS.find((s) => s.name === selectedScenario) ?? SCENARIOS[0]!;
+  const selectedPolicyRecord = policies.find((p) => p.policyId === policyId.trim());
 
   const handleRun = async (scenarioName = selectedScenario) => {
     setRunning(true);
@@ -159,17 +163,36 @@ export function Simulator(): React.ReactElement {
 
       {/* Target Policy bar */}
       <div className="eds-card p-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="text-xs font-medium text-slate-500">Target Policy:</span>
-          <input
-            type="text"
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="text-xs font-semibold text-slate-700">Target Policy:</span>
+          <select
             value={policyId}
             onChange={(e) => setPolicyId(e.target.value)}
-            className="font-mono text-xs font-semibold text-slate-900 px-3 py-1.5 rounded-md border border-slate-300 bg-white w-40"
-          />
-          <span className="text-xs text-slate-400 hidden sm:inline">
-            (Northwind Fabrication)
-          </span>
+            className="font-mono text-xs font-semibold text-slate-900 px-3 py-1.5 rounded-lg border border-slate-300 bg-white shadow-sm outline-none focus:border-teal-500 max-w-xs sm:max-w-md"
+          >
+            <option value="POL-100245">POL-100245 — Northwind Fabrication (Headline Demo)</option>
+            {policies
+              .filter((p) => p.policyId !== 'POL-100245')
+              .map((p) => (
+                <option key={p.policyId} value={p.policyId}>
+                  {p.policyId} — {p.account?.name ?? 'Commercial Insured'} ({p.region})
+                </option>
+              ))}
+          </select>
+          {selectedPolicyRecord && (
+            <span className="text-xs text-teal-700 font-semibold bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200">
+              {selectedPolicyRecord.account?.name} &bull; {selectedPolicyRecord.region}
+            </span>
+          )}
+          {policyId !== 'POL-100245' && (
+            <button
+              type="button"
+              onClick={() => setPolicyId('POL-100245')}
+              className="text-[11px] font-bold text-teal-700 hover:text-teal-900 underline"
+            >
+              Reset to Demo Policy
+            </button>
+          )}
         </div>
 
         <button
