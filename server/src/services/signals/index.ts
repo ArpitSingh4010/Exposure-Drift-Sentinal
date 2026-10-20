@@ -1,5 +1,4 @@
 import { createHash, randomUUID } from 'crypto';
-import mongoose, { ClientSession } from 'mongoose';
 import { getRuleVersion, getRules } from '../../config/rulesLoader.js';
 import { Account } from '../../models/Account.js';
 import { DriftEvent } from '../../models/DriftEvent.js';
@@ -169,7 +168,7 @@ function mergeableEvent(
   };
 }
 
-async function ingestInSession(request: SignalRequest, session: ClientSession): Promise<IngestResult> {
+async function ingestInSession(request: SignalRequest): Promise<IngestResult> {
   const candidates = await loadCandidates();
   let resolved = resolveEntity(resolutionInput(request), candidates.candidates);
   if (!resolved && request.type === 'FLOOD_UPDATE' && request.payload.locationId) {
@@ -209,7 +208,6 @@ async function ingestInSession(request: SignalRequest, session: ClientSession): 
       resolvedPolicyId: resolved?.policyId ?? null,
       matchConfidence: resolved?.confidence ?? null,
     }],
-    { session },
   ).then((documents) => documents[0]);
 
   if (!resolved) {
@@ -243,18 +241,18 @@ async function ingestInSession(request: SignalRequest, session: ClientSession): 
     ? normalizedAddress(firstChange.location.addressLine, request.payload.postalCode ?? '')
     : firstChange.locationId;
   const eventKey = idempotencyKey(resolved.policyId, firstChange.type, locationKey);
-  const existing = await DriftEvent.findOne({ idempotencyKey: eventKey, isOpen: true }).session(session).exec();
+  const existing = await DriftEvent.findOne({ idempotencyKey: eventKey, isOpen: true }).exec();
   if (existing) {
     const merged = mergeableEvent(existing, signalId, score, changes);
     existing.set({ ...merged, whyItMatters: buildWhyItMatters(score.ruleBreakdown) });
-    await existing.save({ session });
+    await existing.save();
     await appendAudit({
       actor: 'SYSTEM',
       action: 'MERGE_SIGNAL',
       entityType: 'DRIFT_EVENT',
       entityId: existing.eventId,
       details: { signalId },
-    }, session);
+    });
     return { signal, resolvedPolicyId: resolved.policyId, confidence: resolved.confidence, event: existing, unmatched: false };
   }
 
@@ -278,7 +276,7 @@ async function ingestInSession(request: SignalRequest, session: ClientSession): 
     signalIds: [signalId],
     recommendedAction: deriveRecommendedAction(score.severity, getRules()),
     whyItMatters: buildWhyItMatters(score.ruleBreakdown),
-  }], { session });
+  }]);
   if (!event) throw new Error('Drift event creation failed');
   const dueBusinessDays = score.severity === 'HIGH' ? 2 : score.severity === 'MEDIUM' ? 5 : 10;
   await guidewireClient.createActivity({
@@ -289,35 +287,29 @@ async function ingestInSession(request: SignalRequest, session: ClientSession): 
     priority: score.severity,
     dueBusinessDays,
     seniorFlag: score.severity === 'HIGH' ? 'USR-002' : undefined,
-  }, session);
+  });
   event.status = 'ACTIVITY_CREATED';
-  await event.save({ session });
-  await applyEventBreachFlag(event, session);
+  await event.save();
+  await applyEventBreachFlag(event);
   await appendAudit({
     actor: 'SYSTEM',
     action: 'CREATE_EVENT',
     entityType: 'DRIFT_EVENT',
     entityId: eventId,
     details: { signalId, status: event.status },
-  }, session);
+  });
   return { signal, resolvedPolicyId: resolved.policyId, confidence: resolved.confidence, event, unmatched: false };
 }
 
 export async function ingestSignal(request: SignalRequest): Promise<IngestResult> {
+  // Note: transactions require a MongoDB replica set.
+  // Running without transactions for standalone MongoDB compatibility.
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    const session = await mongoose.startSession();
     try {
-      let result: IngestResult | undefined;
-      await session.withTransaction(async () => {
-        result = await ingestInSession(request, session);
-      });
-      if (!result) throw new Error('Signal ingestion returned no result');
-      return result;
+      return await ingestInSession(request);
     } catch (error: unknown) {
-      const duplicateKey = error instanceof Error && 'code' in error && error.code === 11000;
+      const duplicateKey = error instanceof Error && 'code' in error && (error as NodeJS.ErrnoException).code === '11000';
       if (!duplicateKey || attempt === 1) throw error;
-    } finally {
-      await session.endSession();
     }
   }
   throw new Error('Signal ingestion retry exhausted');

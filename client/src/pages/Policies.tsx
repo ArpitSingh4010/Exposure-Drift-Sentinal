@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPolicies, fetchPolicy, type PolicyRecord } from '@/api/client';
 import { SeverityChip } from '@/components/SeverityChip';
@@ -13,6 +14,7 @@ function formatMoney(value: number): string {
 }
 
 export function Policies(): React.ReactElement {
+  const navigate = useNavigate();
   const { userId } = useUserStore();
   const [search, setSearch] = useState('');
   const [selectedPolicyId, setSelectedPolicyId] = useState<string | null>(null);
@@ -234,10 +236,13 @@ export function Policies(): React.ReactElement {
                       selectedDetail.drift.map((ev) => (
                         <div
                           key={ev.eventId}
-                          className="p-4 rounded-xl border border-slate-200 bg-white space-y-2 shadow-sm"
+                          onClick={() => navigate(`/events/${ev.eventId}`)}
+                          className="p-4 rounded-xl border border-slate-200 bg-white space-y-2 shadow-sm hover:border-teal-500 hover:shadow-md cursor-pointer transition-all group"
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-mono text-xs font-bold text-slate-800">{ev.eventId}</span>
+                            <span className="font-mono text-xs font-bold text-slate-800 group-hover:text-teal-700 transition-colors">
+                              {ev.eventId} &rarr;
+                            </span>
                             <SeverityChip severity={ev.severity} />
                           </div>
                           <p className="text-xs text-slate-700 font-medium">{ev.whyItMatters}</p>

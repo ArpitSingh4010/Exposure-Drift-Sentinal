@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { useAudit } from '@/hooks/useApi';
 
-const ENTITY_TYPES = ['', 'DriftEvent', 'Activity', 'Signal', 'RiskSnapshot', 'PortfolioConfig'];
+const ENTITY_TYPES = [
+  { value: '', label: 'All Entity Types' },
+  { value: 'DRIFT_EVENT', label: 'Drift Event' },
+  { value: 'ACTIVITY', label: 'Activity' },
+  { value: 'SIGNAL', label: 'Signal' },
+  { value: 'RISK_SNAPSHOT', label: 'Risk Snapshot' },
+  { value: 'PORTFOLIO_CONFIG', label: 'Portfolio Config' },
+];
 
 function actionChipClass(action: string): string {
   if (action.includes('BREACH')) return 'chip-high';
@@ -90,9 +97,8 @@ export function Audit(): React.ReactElement {
               onChange={(e) => setEntityType(e.target.value)}
               className="text-xs font-semibold text-slate-700 border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:border-teal-500 outline-none"
             >
-              <option value="">All Entity Types</option>
-              {ENTITY_TYPES.filter(Boolean).map((type) => (
-                <option key={type} value={type}>{type}</option>
+              {ENTITY_TYPES.map((item) => (
+                <option key={item.value} value={item.value}>{item.label}</option>
               ))}
             </select>
           </div>

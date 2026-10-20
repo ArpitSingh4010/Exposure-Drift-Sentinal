@@ -12,12 +12,21 @@ const STORAGE_KEY = 'eds_userId';
 /** Provides userId state backed by localStorage so it survives page refreshes. */
 export function UserStoreProvider({ children }: { children: React.ReactNode }): React.ReactElement {
   const [userId, setUserIdState] = useState<string | null>(
-    () => localStorage.getItem(STORAGE_KEY) ?? null,
+    () => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      // Treat empty string as logged out
+      return stored && stored.trim() ? stored : null;
+    },
   );
 
   const setUserId = useCallback((id: string) => {
-    localStorage.setItem(STORAGE_KEY, id);
-    setUserIdState(id);
+    if (!id || !id.trim()) {
+      localStorage.removeItem(STORAGE_KEY);
+      setUserIdState(null);
+    } else {
+      localStorage.setItem(STORAGE_KEY, id);
+      setUserIdState(id);
+    }
   }, []);
 
   return (

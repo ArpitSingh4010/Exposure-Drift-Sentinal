@@ -17,13 +17,14 @@ policiesRouter.get('/', async (req: Request, res: Response, next: NextFunction):
       filter.region = req.query.region;
     }
     if (typeof req.query.search === 'string' && req.query.search.trim().length > 0) {
+      const sanitized = req.query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const accountIds = await Account.find({
-        name: { $regex: req.query.search.trim(), $options: 'i' },
+        name: { $regex: sanitized, $options: 'i' },
       })
         .distinct('accountId')
         .exec();
       filter.$or = [
-        { policyId: { $regex: req.query.search.trim(), $options: 'i' } },
+        { policyId: { $regex: sanitized, $options: 'i' } },
         { accountId: { $in: accountIds } },
       ];
     }
