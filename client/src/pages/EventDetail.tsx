@@ -143,9 +143,18 @@ export function EventDetail(): React.ReactElement {
                   Baseline record vs. Candidate state
                 </p>
               </div>
-              {tivDelta > 0 && (
+              {tivDelta > 0 ? (
                 <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
                   +{formatMoney(tivDelta)} (+{tivPct}%)
+                </span>
+              ) : tivDelta < 0 ? (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  {formatMoney(tivDelta)} ({tivPct}%)
+                </span>
+              ) : (
+                <span className="text-xs font-medium px-2 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                  ±$0 Valuation Drift (Environmental / Hazard Risk Shift Only)
                 </span>
               )}
             </div>
@@ -193,7 +202,14 @@ export function EventDetail(): React.ReactElement {
                   <span className="text-[11px] font-semibold text-slate-700 bg-slate-200 px-1.5 py-0.2 rounded">PROPOSED</span>
                 </div>
                 <div>
-                  <div className="text-[11px] text-slate-500 font-medium uppercase">Candidate Total TIV</div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-slate-500 font-medium uppercase">Candidate Total TIV</span>
+                    {tivDelta === 0 && (
+                      <span className="text-[10px] font-semibold text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded">
+                        No Valuation Change
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xl font-heading font-semibold text-slate-900 mt-0.5">
                     {formatMoney(event.after.totalTiv)}
                   </div>
@@ -216,7 +232,7 @@ export function EventDetail(): React.ReactElement {
                           isNew
                             ? 'border-emerald-300 bg-emerald-50/30'
                             : isTivChanged || isFloodChanged
-                              ? 'border-amber-300 bg-amber-50/30'
+                              ? 'border-amber-300 bg-amber-50/30 ring-1 ring-amber-200'
                               : 'border-slate-200 bg-white'
                         }`}
                       >
@@ -225,15 +241,37 @@ export function EventDetail(): React.ReactElement {
                           <div className="flex items-center gap-1">
                             {isNew && (
                               <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
-                                New
+                                New Location
+                              </span>
+                            )}
+                            {isFloodChanged && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
+                                Hazard Shift
+                              </span>
+                            )}
+                            {isTivChanged && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-blue-100 text-blue-800">
+                                TIV Drift
                               </span>
                             )}
                             <span className="font-mono text-slate-500 text-[10px]">{loc.locationId}</span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between text-xs text-slate-600">
-                          <span>Zone: {loc.floodZone} (Score {loc.floodScore})</span>
-                          <span className="font-semibold text-slate-900">{formatMoney(loc.tiv)}</span>
+                          <span className="flex items-center gap-1">
+                            <span>Zone:</span>
+                            <span className={isFloodChanged ? "font-bold text-amber-900 bg-amber-100/90 px-1 py-0.2 rounded" : ""}>
+                              {loc.floodZone}
+                            </span>
+                            <span>(Score</span>
+                            <span className={isFloodChanged ? "font-bold text-amber-900 bg-amber-100/90 px-1 py-0.2 rounded" : ""}>
+                              {loc.floodScore}
+                            </span>
+                            <span>)</span>
+                          </span>
+                          <span className={`font-semibold ${isTivChanged ? "text-amber-900 bg-amber-100 px-1 rounded" : "text-slate-900"}`}>
+                            {formatMoney(loc.tiv)}
+                          </span>
                         </div>
                       </div>
                     );
