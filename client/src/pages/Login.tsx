@@ -72,7 +72,7 @@ export function Login(): React.ReactElement {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-indigo-500/5 blur-3xl" />
       </div>
 
-      <div className="login-card w-full max-w-2xl p-8 scale-in relative">
+      <div className="login-card w-full max-w-2xl p-5 sm:p-8 scale-in relative">
 
         {/* Header */}
         <div className="text-center mb-8">

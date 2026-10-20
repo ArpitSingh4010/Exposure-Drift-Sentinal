@@ -68,7 +68,7 @@ export function EventDetail(): React.ReactElement {
       : '0';
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 fade-in max-w-7xl">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 fade-in max-w-7xl">
       {/* Clean Breadcrumb */}
       <div className="flex items-center gap-2 text-xs text-slate-500">
         <Link to="/desktop" className="hover:text-slate-900 transition-colors">

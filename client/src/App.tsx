@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { UserStoreProvider, useUserStore } from '@/hooks/useUserStore';
 import { TopBar } from '@/components/layout/TopBar';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { BottomNav } from '@/components/layout/BottomNav';
 import { Footer } from '@/components/layout/Footer';
 import { Desktop } from '@/pages/Desktop';
 import { Login } from '@/pages/Login';
@@ -26,7 +27,7 @@ function AppShell(): React.ReactElement {
       <TopBar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto flex flex-col eds-canvas">
+        <main className="flex-1 overflow-y-auto flex flex-col eds-canvas pb-16 md:pb-0">
           <Routes>
             <Route path="/" element={<Navigate to="/desktop" replace />} />
             <Route path="/desktop"         element={<Desktop />} />
@@ -52,6 +53,7 @@ function AppShell(): React.ReactElement {
           <Footer />
         </main>
       </div>
+      <BottomNav />
     </div>
   );
 }

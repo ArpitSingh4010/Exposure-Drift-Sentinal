@@ -204,7 +204,7 @@ export function Rules(): React.ReactElement {
   const categories = ['ALL', 'VALUATION', 'SCHEDULE', 'HAZARD', 'COMPOUND', 'APPETITE'];
 
   return (
-    <div className="p-6 lg:p-8 space-y-8 fade-in max-w-7xl">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 fade-in max-w-7xl">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
