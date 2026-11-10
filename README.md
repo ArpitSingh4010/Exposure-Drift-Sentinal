@@ -10,7 +10,7 @@
 [![Vitest](https://img.shields.io/badge/Tested%20with-Vitest-FCC72B.svg?logo=vitest)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Disclaimer**: Concept project featuring a Guidewire PolicyCenter-inspired workflow. Not affiliated with, sponsored by, or endorsed by Guidewire Software, Inc. No proprietary logos or trademarks are used.
+> **Disclaimer**: Concept project featuring a Guidewire PolicyCenter-inspired workflow. Illustrative products modelled on the concepts of Guidewire PolicyCenter's product model (line of business, coverages, coverage terms, deductibles, limits); not official Guidewire products. Not affiliated with, sponsored by, or endorsed by Guidewire Software, Inc. No proprietary logos or trademarks are used. Synthetic demo data only. Band names are illustrative, not official hazard agency data.
 
 ---
 
@@ -45,12 +45,13 @@ flowchart TD
         DEDUPE["Idempotency & Partial Unique Index Deduplication"]
     end
 
-    subgraph Storage["MongoDB Persistence"]
+    subgraph Storage["MongoDB Persistence (15 Collections)"]
         DB_EVENTS[("DriftEvents")]
-        DB_POLICIES[("Policies & Locations")]
+        DB_POLICIES[("Policies, Products (NEW), Locations")]
         DB_SNAPSHOTS[("RiskSnapshots (Immutable)")]
-        DB_AUDIT[("AuditLog (Append-Only)")]
-        DB_PORTFOLIO[("Portfolio Exposure & Caps")]
+        DB_AUDIT[("AuditLogs, Decisions, RuleVersions")]
+        DB_PORTFOLIO[("PortfolioConfigs, FloodLookups, HazardLookups (NEW)")]
+        DB_CORE[("Accounts, Users, Signals, Activities")]
     end
 
     subgraph GW["Guidewire PolicyCenter Mock Layer"]
@@ -95,6 +96,37 @@ flowchart TD
    - Every signal ingested, rule fired, activity assigned, and decision confirmed writes an append-only audit record with actor timestamping.
 4. **Resilient MongoDB Support**:
    - Fully compatible with standard standalone MongoDB instances as well as multi-node replica sets (`rs0`).
+
+---
+
+## 🌪️ Multi-Hazard Support & Product Catalogue
+
+EDS expands commercial property underwriting beyond flood to **8 distinct perils**, monitored through **9 PolicyCenter-inspired products**:
+
+### 1. 8 Hazard Perils & Appetite Caps
+| Hazard ID | Peril Label | Bands (Low to High) | High-Risk Bands | Appetite Cap | Regional Concentration |
+| :--- | :--- | :--- | :--- | :---: | :--- |
+| `flood` | Flood | `X`, `B`, `A`, `AE`, `V` | `A`, `AE`, `V` | 20.00% | South-East, coastal |
+| `earthquake` | Earthquake | `low`, `moderate`, `high`, `very_high` | `high`, `very_high` | 25.00% | West |
+| `tsunami` | Tsunami | `none`, `low`, `moderate`, `high` | `high` | 10.00% | West, South-East coast |
+| `cyclone` | Cyclone / Hurricane | `low`, `moderate`, `high`, `extreme` | `high`, `extreme` | 20.00% | South-East, Gulf |
+| `wildfire` | Wildfire | `low`, `moderate`, `high`, `very_high` | `high`, `very_high` | 15.00% | West |
+| `landslide` | Landslide | `low`, `moderate`, `high` | `high` | 10.00% | West, North-East |
+| `tornado` | Tornado | `low`, `moderate`, `high` | `high` | 15.00% | Midwest |
+| `severe_storm` | Severe Storm | `low`, `moderate`, `high` | `high` | 25.00% | Midwest, South-East |
+
+### 2. 9 Policy Products (Guidewire Product Model Concepts)
+* **`CP-BASE`**: Commercial Property Base All-Risk (monitors all 8 hazards, $25k deductible).
+* **`CP-FLD`**: Commercial Flood Coverage (monitors flood, 30-day waiting period, $25k deductible).
+* **`CP-EQ`**: Commercial Earthquake Coverage (monitors earthquake, 5% TIV deductible).
+* **`CP-TSU`**: Tsunami and Coastal Inundation Extension (monitors tsunami, 5% TIV deductible).
+* **`CP-WND`**: Named Storm and Hurricane Coverage (monitors cyclone, 3% TIV deductible).
+* **`CP-WLD`**: Wildfire Coverage (monitors wildfire, defensible space warranty, $50k deductible).
+* **`CP-LSL`**: Earth Movement and Landslide Extension (monitors landslide, 5% TIV deductible).
+* **`CP-TOR`**: Tornado and Windstorm Coverage (monitors tornado, $25k deductible).
+* **`CP-SCS`**: Severe Convective Storm Coverage (monitors severe storm, 1% TIV deductible).
+
+*Signal filtering rule*: A policy only produces hazard drift activities for hazards its product monitors. Property changes (new location, TIV jump) apply to all products unconditionally.
 
 ---
 
@@ -321,19 +353,20 @@ exposure-drift-sentinel/
 
 ---
 
-## 🎬 3-Minute Demo Script
+## 🎬 5-Minute Multi-Hazard Demo Script
 
-Want to see the full system in action? Follow these steps:
-1. Open [http://localhost:5173/login](http://localhost:5173/login) $\rightarrow$ Select **Priya Sharma** $\rightarrow$ Click **Continue**.
-2. Navigate to **Signal Simulator** in the sidebar.
-3. Select scenario **"New Facility Discovered"** and click **Run Scenario**.
-4. Observe the live result:
-   - Policy `POL-100245` flagged with **HIGH Severity (13 points)**.
-   - **Portfolio Appetite Breach** banner triggered (South-East crosses $20\%$ cap).
-5. Click the generated **Drift Event link** to open the side-by-side comparison.
-6. In the **Action Terminal**, click **"Open & Start Review"**.
-7. Click **"Accept Exposure (Create Snapshot)"**, type a brief underwriting rationale note, and click **Confirm**.
-8. Navigate to **Audit Trail** to observe the tamper-proof ledger tracking your decision, snapshot generation, and activity completion.
+Want to see the multi-hazard system in action? Follow these steps (detailed guide in [`docs/DEMO.md`](docs/DEMO.md)):
+1. Open [http://localhost:5173/login](http://localhost:5173/login) $\rightarrow$ Select **Marcus Williams** (Senior Underwriter) $\rightarrow$ Click **Continue**.
+2. Navigate to **Portfolio** $\rightarrow$ Observe the 8 hazard tabs. Check **Flood** (South-East at 19.70% / 20.00% cap) and **Earthquake** (West below 25.00% cap).
+3. Navigate to **Signal Simulator** $\rightarrow$ Select scenario **"Hazard Update (Earthquake)"** $\rightarrow$ Click **Run Scenario**.
+   - Observe `HAZARD_UPDATE` signal on policy `POL-200101` (Fault Line Foods, `CP-EQ`).
+   - High-risk band entry (+5 pts) + score jump (+3 pts) triggers **HIGH Severity (8 points)** and generates a Guidewire activity.
+4. In **Signal Simulator**, select scenario **"New Facility Discovered"** on `POL-100245` $\rightarrow$ Click **Run Scenario**.
+   - R1 (TIV +40.6%) + R2 (New building) + R3 (Flood Zone AE) + R5 (Escalation) $\rightarrow$ **HIGH Severity (13 points)**.
+   - Pushes South-East flood exposure from **19.70% to 20.07%**, crossing the **20.00% appetite cap** and triggering the **Portfolio Breach Banner**.
+5. Click the generated **Drift Event link** to inspect the side-by-side comparison and exact rule point receipts.
+6. In the **Action Terminal**, click **"Open & Start Review"**, then **"Accept Exposure (Create Snapshot)"** with an underwriting note.
+7. Navigate to **Audit Trail** to see the append-only record tracking your decision, snapshot generation, and Guidewire activity completion.
 
 ---
 

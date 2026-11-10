@@ -8,6 +8,10 @@ signalsRouter.post('/', async (req: Request, res: Response, next: NextFunction):
   try {
     const parsed = signalRequestSchema.parse({ body: req.body }).body as SignalRequest;
     const result = await ingestSignal(parsed);
+    if (result.reason === 'hazard_not_monitored_by_product') {
+      res.status(200).json(result);
+      return;
+    }
     res.status(result.unmatched ? 202 : 201).json(result);
   } catch (error: unknown) {
     next(error);

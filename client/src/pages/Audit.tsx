@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAudit } from '@/hooks/useApi';
 
 const ENTITY_TYPES = [
-  { value: '', label: 'All Entity Types' },
+  { value: '', label: 'All entity types' },
   { value: 'DRIFT_EVENT', label: 'Drift Event' },
   { value: 'ACTIVITY', label: 'Activity' },
   { value: 'SIGNAL', label: 'Signal' },
@@ -45,8 +45,8 @@ export function Audit(): React.ReactElement {
   if (query.isLoading) {
     return (
       <div className="p-12 flex flex-col items-center justify-center min-h-[400px] text-slate-500 space-y-3">
-        <div className="w-8 h-8 border-3 border-teal-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-medium">Loading immutable audit stream...</p>
+        <div className="w-6 h-6 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs font-medium">Loading immutable audit stream...</p>
       </div>
     );
   }
@@ -54,7 +54,7 @@ export function Audit(): React.ReactElement {
   if (query.isError) {
     return (
       <div className="p-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-5 shadow-sm">
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded p-4 text-xs font-medium">
           Unable to load audit history.
         </div>
       </div>
@@ -64,38 +64,38 @@ export function Audit(): React.ReactElement {
   const entries = query.data ?? [];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 fade-in max-w-7xl">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
-          <h1 className="text-2xl font-heading font-semibold text-slate-900 tracking-tight">
-            Audit Trail
+          <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+            Immutable Audit Trail
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            System record of signal ingests, rule evaluations, underwriter decisions, and appetite breaches.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Append-only system ledger recording signals, rule evaluations, underwriter decisions, and appetite breaches.
           </p>
         </div>
 
         <div className="text-right">
-          <div className="text-[11px] font-medium text-slate-500 uppercase">Total Entries</div>
-          <div className="text-2xl font-heading font-semibold text-slate-900">
+          <div className="text-xs font-medium text-slate-500">Total records</div>
+          <div className="text-xl font-semibold text-slate-900 mt-0.5">
             {entries.length}
           </div>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <section className="eds-card p-5 bg-white flex flex-wrap gap-4 items-end justify-between">
+      <section className="eds-card p-4 bg-white flex flex-wrap gap-4 items-end justify-between">
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="eds-label block mb-1 text-[11px]" htmlFor="audit-entity-type">
-              Target Entity Type
+            <label className="block mb-1 text-xs font-medium text-slate-700" htmlFor="audit-entity-type">
+              Target entity type
             </label>
             <select
               id="audit-entity-type"
               value={entityType}
               onChange={(e) => setEntityType(e.target.value)}
-              className="text-xs font-semibold text-slate-700 border border-slate-300 rounded-lg px-3 py-2 bg-slate-50 focus:bg-white focus:border-teal-500 outline-none"
+              className="eds-select"
             >
               {ENTITY_TYPES.map((item) => (
                 <option key={item.value} value={item.value}>{item.label}</option>
@@ -104,15 +104,15 @@ export function Audit(): React.ReactElement {
           </div>
 
           <div>
-            <label className="eds-label block mb-1 text-[11px]" htmlFor="audit-actor">
-              Actor Filter
+            <label className="block mb-1 text-xs font-medium text-slate-700" htmlFor="audit-actor">
+              Actor filter
             </label>
             <input
               id="audit-actor"
               value={actor}
               onChange={(e) => setActor(e.target.value)}
               placeholder="e.g. USR-001 or system"
-              className="text-xs font-semibold text-slate-700 border border-slate-300 rounded-lg px-3 py-2 w-48 bg-slate-50 focus:bg-white focus:border-teal-500 outline-none"
+              className="eds-input w-48"
             />
           </div>
 
@@ -120,9 +120,9 @@ export function Audit(): React.ReactElement {
             <button
               type="button"
               onClick={() => { setEntityType(''); setActor(''); }}
-              className="text-xs font-bold text-teal-700 hover:text-teal-900 pb-2"
+              className="text-xs text-blue-700 hover:text-blue-900 font-medium pb-2 cursor-pointer"
             >
-              Reset Filters
+              Reset filters
             </button>
           )}
         </div>
@@ -137,8 +137,8 @@ export function Audit(): React.ReactElement {
                 <th>Timestamp</th>
                 <th>Actor</th>
                 <th>Action</th>
-                <th>Entity Reference</th>
-                <th>Details Payload</th>
+                <th>Entity reference</th>
+                <th>Details payload</th>
               </tr>
             </thead>
             <tbody>
@@ -154,7 +154,7 @@ export function Audit(): React.ReactElement {
                     })}
                   </td>
                   <td>
-                    <span className="font-semibold text-xs text-slate-800 bg-slate-100 px-2 py-0.5 rounded">
+                    <span className="text-xs font-medium text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">
                       {entry.actor}
                     </span>
                   </td>
@@ -164,8 +164,8 @@ export function Audit(): React.ReactElement {
                     </span>
                   </td>
                   <td>
-                    <div className="text-[11px] text-slate-400 font-semibold">{entry.entityType}</div>
-                    <div className="font-mono text-xs font-bold text-navy-950">{entry.entityId}</div>
+                    <div className="text-[11px] text-slate-400">{entry.entityType}</div>
+                    <div className="font-mono text-xs font-semibold text-slate-900">{entry.entityId}</div>
                   </td>
                   <td className="text-xs text-slate-700 max-w-[340px]">
                     <DetailsSummary details={entry.details} />

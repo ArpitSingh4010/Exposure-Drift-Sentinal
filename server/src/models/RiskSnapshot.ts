@@ -6,8 +6,16 @@ export interface SnapshotLocation {
   locationId: string;
   addressLine: string;
   tiv: number;
+  /** Legacy flood fields — kept for backward compatibility with all existing tests. */
   floodZone: FloodZone;
   floodScore: number;
+  /**
+   * Non-flood hazard readings captured at snapshot time (optional).
+   * Keyed by HazardId string — string keys used here so detection code can
+   * index with any HazardId (including 'flood' for the helper, which skips
+   * this map anyway). Validation is enforced at the service layer.
+   */
+  hazards?: Record<string, { band: string; score: number }>;
 }
 
 /** The full state captured at snapshot time. */
@@ -27,11 +35,17 @@ export interface IRiskSnapshot extends Document {
 
 const SnapshotLocationSchema = new Schema<SnapshotLocation>(
   {
-    locationId: { type: String, required: true },
+    locationId:  { type: String, required: true },
     addressLine: { type: String, required: true },
-    tiv: { type: Number, required: true },
-    floodZone: { type: String, enum: ['X', 'B', 'A', 'AE', 'V'], required: true },
-    floodScore: { type: Number, required: true },
+    tiv:         { type: Number, required: true },
+    /** Legacy flood fields — do not remove. */
+    floodZone:   { type: String, enum: ['X', 'B', 'A', 'AE', 'V'], required: true },
+    floodScore:  { type: Number, required: true },
+    /**
+     * Non-flood hazard readings at snapshot time. Schema.Types.Mixed keeps
+     * this flexible as more hazards are added without schema migrations.
+     */
+    hazards: { type: Schema.Types.Mixed, required: false, default: undefined },
   },
   { _id: false },
 );

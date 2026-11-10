@@ -29,6 +29,32 @@ guidewireMockRouter.get('/accounts/:accountId', async (req: Request, res: Respon
   }
 });
 
+guidewireMockRouter.get('/product-definitions', async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    res.json(await guidewireClient.getProductDefinitions());
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
+guidewireMockRouter.get('/product-definitions/:productCode', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const productCode = req.params.productCode;
+    if (typeof productCode !== 'string' || !productCode) {
+      res.status(400).json({ error: 'Product code is required' });
+      return;
+    }
+    const product = await guidewireClient.getProductDefinition(productCode);
+    if (!product) {
+      res.status(404).json({ error: `Product definition not found: ${productCode}` });
+      return;
+    }
+    res.json(product);
+  } catch (error: unknown) {
+    next(error);
+  }
+});
+
 guidewireMockRouter.post('/policies/:policyId/activities', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const activity = await guidewireClient.createActivity({

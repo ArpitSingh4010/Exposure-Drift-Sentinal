@@ -44,4 +44,40 @@ describe('P7 routes', () => {
     expect(audit.status).toBe(200);
     expect(audit.body.some((entry: { action: string }) => entry.action === 'CREATE_EVENT')).toBe(true);
   });
+
+  it('serves Guidewire PolicyCenter product-definitions endpoints', async () => {
+    const listRes = await request(app).get('/pc/product-definitions');
+    expect(listRes.status).toBe(200);
+    expect(Array.isArray(listRes.body)).toBe(true);
+    expect(listRes.body.length).toBe(9);
+
+    const cpBase = listRes.body.find((p: { productCode: string }) => p.productCode === 'CP-BASE');
+    expect(cpBase).toBeDefined();
+    expect(cpBase.lineOfBusiness).toBe('Commercial Property');
+    expect(cpBase.monitoredHazards).toHaveLength(8);
+
+    const eqRes = await request(app).get('/pc/product-definitions/CP-EQ');
+    expect(eqRes.status).toBe(200);
+    expect(eqRes.body.productCode).toBe('CP-EQ');
+    expect(eqRes.body.primaryHazard).toBe('earthquake');
+    expect(eqRes.body.monitoredHazards).toEqual(['earthquake']);
+
+    const notFound = await request(app).get('/pc/product-definitions/NON-EXISTENT');
+    expect(notFound.status).toBe(404);
+  });
+
+  it('runs hazard_update scenario in simulator', async () => {
+    const res = await request(app)
+      .post('/simulator/scenarios/hazard_update')
+      .send({ hazard: 'earthquake' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.scenario).toBe('hazard_update');
+    expect(res.body.policyId).toBe('POL-200101');
+    expect(res.body.steps.at(-1)).toBe('Scenario complete');
+    expect(res.body.signal.type).toBe('HAZARD_UPDATE');
+    expect(res.body.signal.payload.hazard).toBe('earthquake');
+    expect(res.body.event).toBeDefined();
+    expect(res.body.event.severity).toBe('HIGH');
+  });
 });

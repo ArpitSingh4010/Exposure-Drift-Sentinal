@@ -22,6 +22,18 @@ import { Decision } from '../models/Decision.js';
 import { DriftEvent } from '../models/DriftEvent.js';
 import { RuleVersion } from '../models/RuleVersion.js';
 import { Signal } from '../models/Signal.js';
+import { Product } from '../models/Product.js';
+import { HazardLookup } from '../models/HazardLookup.js';
+import {
+  PRODUCT_CATALOGUE,
+  DEMO_ACCOUNTS_H6,
+  NEW_DEMO_POLICIES,
+  NEW_DEMO_LOCATIONS,
+  assignHazardsForLocation,
+  assignProductCode,
+} from './hazardData.js';
+import { HAZARD_IDS } from '../services/hazards/index.js';
+import { calculateExposure } from '../services/portfolio/index.js';
 import { loadAndStoreRules } from '../config/rulesLoader.js';
 import type { SnapshotLocation } from '../models/RiskSnapshot.js';
 
@@ -245,6 +257,7 @@ interface PolicyDef {
   premium: number;
   effectiveDate: string;
   expiryDate: string;
+  productCode?: string;
 }
 
 const POLICY_DEFS: PolicyDef[] = [
@@ -325,6 +338,7 @@ interface LocDef {
   occupancy: string;
   floodZone: string;
   floodScore: number;
+  hazards?: Record<string, { band: string; score: number }>;
   /** true = this is the TIV calibration anchor (only one) */
   isAnchor?: boolean;
 }
@@ -504,16 +518,21 @@ for (const p of POLICY_DEFS) {
 }
 
 // All locations before calibration
-const ALL_LOCS_BEFORE_CAL = [
+const ALL_LOCS_BEFORE_CAL: LocDef[] = [
   ...DEMO_LOCATIONS,
+  ...NEW_DEMO_LOCATIONS,
   ...ALL_FLOOD_LOCATIONS,
   ...SAFE_LOCATIONS,
 ];
 
 // Scale non-SE-flood locations so the fixed SE flood total remains unchanged.
+// We also protect the fixed demo policies (POL-100245 and the 7 new demo policies POL-200101..7)
+// so each demo policy has exactly $4,000,000 total TIV ($2M per location).
 const protectedLocations = ALL_LOCS_BEFORE_CAL.filter(
   (location) =>
-    location.region === 'South-East' && ['A', 'AE', 'V'].includes(location.floodZone),
+    (location.region === 'South-East' && ['A', 'AE', 'V'].includes(location.floodZone)) ||
+    location.policyId === 'POL-100245' ||
+    location.policyId.startsWith('POL-2001'),
 );
 const adjustableLocations = ALL_LOCS_BEFORE_CAL.filter(
   (location) => !protectedLocations.includes(location),
@@ -534,11 +553,15 @@ const calibratedTotal = ALL_LOCS_BEFORE_CAL.reduce((sum, location) => sum + loca
 anchorLoc.tiv += TARGET_TOTAL_TIV - calibratedTotal;
 if (anchorLoc.tiv <= 0) throw new Error('TIV calibration produced an invalid anchor value');
 
-const ALL_LOCATIONS: LocDef[] = [
-  ...DEMO_LOCATIONS,
-  ...ALL_FLOOD_LOCATIONS,
-  ...SAFE_LOCATIONS,
-];
+const ALL_LOCATIONS: LocDef[] = ALL_LOCS_BEFORE_CAL;
+
+// Assign multi-hazard readings to all locations that don't already have explicit readings
+for (let i = 0; i < ALL_LOCATIONS.length; i++) {
+  const loc = ALL_LOCATIONS[i]!;
+  if (!loc.hazards) {
+    loc.hazards = assignHazardsForLocation(loc.region, i + 1);
+  }
+}
 
 // ── ensureIndexes ─────────────────────────────────────────────────────────
 
@@ -550,6 +573,8 @@ export async function ensureIndexes(): Promise<void> {
     Location.syncIndexes(),
     RiskSnapshot.syncIndexes(),
     FloodLookup.syncIndexes(),
+    HazardLookup.syncIndexes(),
+    Product.syncIndexes(),
     Signal.syncIndexes(),
     DriftEvent.syncIndexes(),
     Activity.syncIndexes(),
@@ -571,6 +596,8 @@ export async function seedDb(): Promise<void> {
     Location.deleteMany({}),
     RiskSnapshot.deleteMany({}),
     FloodLookup.deleteMany({}),
+    HazardLookup.deleteMany({}),
+    Product.deleteMany({}),
     Signal.deleteMany({}),
     DriftEvent.deleteMany({}),
     Activity.deleteMany({}),
@@ -586,8 +613,42 @@ export async function seedDb(): Promise<void> {
 
   // ── 3. Insert base data ────────────────────────────────────────────────
   await User.insertMany(USERS);
-  await Account.insertMany(ACCOUNTS);
+  await Account.insertMany([...ACCOUNTS, ...DEMO_ACCOUNTS_H6]);
   await FloodLookup.insertMany(FLOOD_LOOKUP);
+  await Product.insertMany(PRODUCT_CATALOGUE);
+
+  // Fill HazardLookup table for all seeded postal codes and all 8 hazards
+  const allPostalCodes = [
+    ...new Set([
+      ...FLOOD_LOOKUP.map((f) => f.postalCode),
+      ...ALL_LOCATIONS.map((l) => l.postalCode),
+    ]),
+  ];
+  const hazardLookups = [];
+  for (const postalCode of allPostalCodes) {
+    const floodEntry = floodMap.get(postalCode);
+    const locWithPostal = ALL_LOCATIONS.find((l) => l.postalCode === postalCode);
+
+    for (const hazard of HAZARD_IDS) {
+      if (hazard === 'flood') {
+        hazardLookups.push({
+          postalCode,
+          hazard: 'flood',
+          band: floodEntry?.floodZone ?? 'X',
+          score: floodEntry?.floodScore ?? 1,
+        });
+      } else {
+        const reading = locWithPostal?.hazards?.[hazard] ?? { band: 'low', score: 1 };
+        hazardLookups.push({
+          postalCode,
+          hazard,
+          band: reading.band,
+          score: reading.score,
+        });
+      }
+    }
+  }
+  await HazardLookup.insertMany(hazardLookups);
 
   await PortfolioConfig.insertMany([
     { key: 'floodCap_default',    value: 0.20 },
@@ -599,10 +660,24 @@ export async function seedDb(): Promise<void> {
   ]);
 
   // ── 4. Insert policies ─────────────────────────────────────────────────
+  const allPolicyDefs: PolicyDef[] = [
+    ...POLICY_DEFS,
+    ...NEW_DEMO_POLICIES.map((p) => ({
+      policyId: p.policyId,
+      accountId: p.accountId,
+      region: p.region,
+      premium: p.premium,
+      effectiveDate: p.effectiveDate,
+      expiryDate: p.expiryDate,
+      productCode: p.productCode,
+    })),
+  ];
+
   await Policy.insertMany(
-    POLICY_DEFS.map((p) => ({
+    allPolicyDefs.map((p, i) => ({
       ...p,
       product: 'Commercial Property',
+      productCode: p.productCode ?? assignProductCode(p.policyId, p.region, i),
       status: 'IN_FORCE',
       effectiveDate: new Date(p.effectiveDate),
       expiryDate: new Date(p.expiryDate),
@@ -636,7 +711,47 @@ export async function seedDb(): Promise<void> {
     );
   }
 
-  // ── 7. Create BIND snapshots for every policy ──────────────────────────
+  // ── 7. Verify Products & Multi-Hazard Invariants ───────────────────────
+  const productCount = await Product.countDocuments();
+  if (productCount !== 9) {
+    throw new Error(`SEED VERIFICATION FAILED — product count: ${productCount} !== 9`);
+  }
+
+  const invalidProductPolicyCount = await Policy.countDocuments({
+    productCode: { $nin: PRODUCT_CATALOGUE.map((p) => p.productCode) },
+  });
+  if (invalidProductPolicyCount > 0) {
+    throw new Error(
+      `SEED VERIFICATION FAILED — ${invalidProductPolicyCount} policies have invalid productCode`,
+    );
+  }
+
+  // Verify all hazards' worst-region shares are below their appetite cap
+  const rulesConfig = await loadAndStoreRules();
+  const allSeededLocs = await Location.find().lean();
+  for (const hazard of HAZARD_IDS) {
+    const exp = calculateExposure(
+      allSeededLocs.map((l) => ({
+        policyId: l.policyId,
+        region: l.region,
+        tiv: l.tiv,
+        floodZone: l.floodZone,
+        hazards: l.hazards as Record<string, { band: string; score: number }> | undefined,
+      })),
+      [],
+      hazard,
+      rulesConfig,
+    );
+    for (const reg of exp.regions) {
+      if (reg.breach) {
+        throw new Error(
+          `SEED VERIFICATION FAILED: Region ${reg.region} breached cap for hazard ${hazard} (share: ${reg.share.toFixed(4)}, cap: ${reg.cap})`,
+        );
+      }
+    }
+  }
+
+  // ── 8. Create BIND snapshots for every policy ──────────────────────────
   const allPolicies = await Policy.find().lean();
   for (const pol of allPolicies) {
     const locs = await Location.find({ policyId: pol.policyId }).lean();
@@ -646,6 +761,7 @@ export async function seedDb(): Promise<void> {
       tiv: l.tiv,
       floodZone: l.floodZone,
       floodScore: l.floodScore,
+      hazards: l.hazards as Record<string, { band: string; score: number }> | undefined,
     }));
     await RiskSnapshot.create({
       policyId: pol.policyId,
@@ -657,8 +773,6 @@ export async function seedDb(): Promise<void> {
       },
     });
   }
-
-  await loadAndStoreRules();
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────

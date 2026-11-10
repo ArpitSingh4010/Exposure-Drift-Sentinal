@@ -2,9 +2,9 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useActivities, usePortfolio, useRules } from '@/hooks/useApi';
 
-// ── Nav icon helpers ────────────────────────────────────────────────────────
 function IconQueue()     { return <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>; }
 function IconPolicies()  { return <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>; }
+function IconProducts()  { return <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>; }
 function IconPortfolio() { return <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>; }
 function IconSimulator() { return <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>; }
 function IconAudit()     { return <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>; }
@@ -12,7 +12,7 @@ function IconRules()     { return <svg className="w-4 h-4" fill="none" viewBox="
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-1.5 mt-1">
+    <div className="text-xs font-medium text-slate-500 px-3 mb-1 mt-2">
       {children}
     </div>
   );
@@ -26,7 +26,7 @@ export function Sidebar({ children }: { children?: React.ReactNode }): React.Rea
 
   if (children) {
     return (
-      <aside className="sidebar p-4" aria-label="Contextual sidebar">
+      <aside className="sidebar p-4 bg-slate-50 border-r border-slate-200" aria-label="Contextual sidebar">
         {children}
       </aside>
     );
@@ -48,122 +48,110 @@ export function Sidebar({ children }: { children?: React.ReactNode }): React.Rea
   const ruleVersion = rulesQuery.data?.version?.slice(0, 8) ?? '3e137490';
 
   return (
-    <aside className="sidebar hidden md:flex flex-col justify-between p-3" aria-label="Navigation sidebar">
-      <div className="space-y-5">
+    <aside className="sidebar hidden md:flex flex-col justify-between p-3 bg-slate-50 border-r border-slate-200 w-60 flex-shrink-0" aria-label="Navigation sidebar">
+      <div className="space-y-4">
 
         {/* Workspace nav */}
-        <div className="space-y-0.5">
-          <SectionLabel>Workspace</SectionLabel>
+        <div className="space-y-1">
+          <SectionLabel>Underwriting Workspace</SectionLabel>
 
           <NavLink to="/desktop" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <IconQueue />
             <span className="flex-1">Review Queue</span>
             <div className="flex items-center gap-1">
               {overdueCount > 0 && (
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 border border-red-200">
+                <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded bg-red-100 text-red-700 border border-red-200">
                   {overdueCount}
                 </span>
               )}
               {openCount > 0 && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-600">
+                <span className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-slate-200 text-slate-700">
                   {openCount}
                 </span>
               )}
             </div>
           </NavLink>
 
-          <NavLink to="/policies"  className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+          <NavLink to="/policies" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <IconPolicies />
-            Policies & Locations
+            <span>Policies & Locations</span>
+          </NavLink>
+
+          <NavLink to="/products" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+            <IconProducts />
+            <span>Product Catalogue</span>
           </NavLink>
 
           <NavLink to="/portfolio" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <IconPortfolio />
-            Portfolio Exposure
+            <span>Portfolio Exposure</span>
           </NavLink>
         </div>
 
-        {/* Tools nav */}
-        <div className="space-y-0.5">
-          <SectionLabel>Verification</SectionLabel>
+        {/* Verification nav */}
+        <div className="space-y-1">
+          <SectionLabel>Verification & Controls</SectionLabel>
 
           <NavLink to="/simulator" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <IconSimulator />
-            Signal Simulator
+            <span>Signal Simulator</span>
           </NavLink>
 
-          <NavLink to="/audit"     className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+          <NavLink to="/audit" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <IconAudit />
-            Audit Trail
+            <span>Audit Trail</span>
           </NavLink>
 
-          <NavLink to="/rules"     className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
+          <NavLink to="/rules" className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}>
             <IconRules />
-            Rules Catalog
+            <span>Rules Catalogue</span>
           </NavLink>
         </div>
 
-        {/* Portfolio widget */}
-        <div className="rounded-xl border border-slate-200/80 overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(8px)' }}>
-          <div className="px-3 py-2.5 border-b border-slate-200/60">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-slate-700">SE Flood Exposure</span>
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                isBreached
-                  ? 'bg-red-100 text-red-700 border border-red-200'
-                  : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-              }`}>
-                {isBreached ? '⚠ Breach' : '✓ In Appetite'}
-              </span>
-            </div>
+        {/* Portfolio appetite summary widget */}
+        <div className="rounded border border-slate-200 bg-white p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-slate-700">SE Flood Appetite</span>
+            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${
+              isBreached
+                ? 'bg-red-50 text-red-700 border-red-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            }`}>
+              {isBreached ? 'Breach' : 'Within appetite'}
+            </span>
           </div>
 
-          <div className="px-3 py-2.5 space-y-2">
-            <div className="flex items-baseline justify-between">
-              <span className={`text-xl font-heading font-bold ${isBreached ? 'text-red-600' : 'text-slate-900'}`}>
-                {seSharePct}%
-              </span>
-              <span className="text-slate-400 text-[11px]">cap {seCapPct}%</span>
-            </div>
-
-            {/* Progress bar */}
-            <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-700 ${isBreached ? 'bg-red-500' : ''}`}
-                style={{
-                  width: `${seProgress}%`,
-                  background: isBreached
-                    ? 'linear-gradient(90deg, #ef4444, #dc2626)'
-                    : 'linear-gradient(90deg, #00c7b8, #3b82f6)',
-                }}
-              />
-            </div>
-
-            <button
-              onClick={() => navigate('/portfolio')}
-              className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 transition-colors flex items-center gap-1"
-            >
-              View breakdown
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
+          <div className="flex items-baseline justify-between pt-1">
+            <span className={`text-lg font-semibold ${isBreached ? 'text-red-700' : 'text-slate-900'}`}>
+              {seSharePct}%
+            </span>
+            <span className="text-slate-400 text-xs">Cap {seCapPct}%</span>
           </div>
+
+          {/* Progress bar */}
+          <div className="w-full h-1.5 bg-slate-100 rounded overflow-hidden border border-slate-200">
+            <div
+              className={`h-full transition-all duration-300 ${isBreached ? 'bg-red-600' : 'bg-blue-600'}`}
+              style={{ width: `${seProgress}%` }}
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate('/portfolio')}
+            className="text-xs text-blue-700 hover:text-blue-900 font-medium pt-1 block cursor-pointer"
+          >
+            Inspect multi-hazard exposure
+          </button>
         </div>
       </div>
 
       {/* System status */}
-      <div className="pt-3 border-t border-slate-200/70 space-y-1.5">
-        <div className="flex items-center justify-between px-1">
-          <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
-            <span className="status-dot status-dot-green" />
-            System Live
-          </span>
-          <span className="font-mono text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
-            v{ruleVersion}
-          </span>
-        </div>
+      <div className="pt-3 border-t border-slate-200 text-xs text-slate-500 flex items-center justify-between">
+        <span>Deterministic rules</span>
+        <span className="font-mono text-[11px] text-slate-600 bg-slate-200/60 px-1 py-0.5 rounded">
+          v{ruleVersion}
+        </span>
       </div>
     </aside>
   );

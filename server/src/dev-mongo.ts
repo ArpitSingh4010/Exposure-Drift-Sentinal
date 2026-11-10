@@ -12,15 +12,15 @@ import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import mongoose from 'mongoose';
-import { ensureIndexes } from './seed/index.js';
+import { ensureIndexes, seedDb } from './seed/index.js';
 import { loadAndStoreRules } from './config/rulesLoader.js';
 
 async function main(): Promise<void> {
   logger.info('Starting embedded MongoMemoryReplSet for local dev...');
 
   const replSet = await MongoMemoryReplSet.create({
+    binary: { version: '7.0.14' },
     replSet: { count: 1, name: 'rs0', storageEngine: 'wiredTiger' },
-    instanceOpts: [{ port: 27017 }],
   });
 
   const uri = replSet.getUri('eds');
@@ -31,6 +31,9 @@ async function main(): Promise<void> {
   logger.info('Mongoose connected to embedded replica set');
   await ensureIndexes();
   await loadAndStoreRules();
+  logger.info('Seeding database with deterministic seed data...');
+  await seedDb();
+  logger.info('Database seeded successfully');
 
   // Start Express
   const app = createApp();

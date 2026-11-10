@@ -6,9 +6,11 @@ import {
   fetchEvent,
   fetchEvents,
   fetchPortfolio,
+  fetchPortfolioSummary,
   fetchAudit,
   fetchPolicies,
   fetchPolicy,
+  fetchProductDefinitions,
   fetchRules,
   reopenEvent,
   startReview,
@@ -23,6 +25,11 @@ export function useEvents() {
 export function useActivities() {
   const { userId } = useUserStore();
   return useQuery({ queryKey: ['activities'], queryFn: () => fetchActivities(userId) });
+}
+
+export function useProducts() {
+  const { userId } = useUserStore();
+  return useQuery({ queryKey: ['products'], queryFn: () => fetchProductDefinitions(userId) });
 }
 
 export function useEvent(eventId: string) {
@@ -56,11 +63,19 @@ export function useEventActions() {
   return { review, reopen, decide };
 }
 
-export function usePortfolio(eventId?: string) {
+export function usePortfolio(hazard = 'flood', eventId?: string) {
   const { userId } = useUserStore();
   return useQuery({
-    queryKey: ['portfolio', eventId ?? 'baseline'],
-    queryFn: () => fetchPortfolio(userId, eventId),
+    queryKey: ['portfolio', hazard, eventId ?? 'baseline'],
+    queryFn: () => fetchPortfolio(userId, eventId, hazard),
+  });
+}
+
+export function usePortfolioSummary() {
+  const { userId } = useUserStore();
+  return useQuery({
+    queryKey: ['portfolio', 'summary'],
+    queryFn: () => fetchPortfolioSummary(userId),
   });
 }
 

@@ -18,6 +18,11 @@ import { logger } from './config/logger.js';
  * Creates and configures the Express application.
  * Exported separately from server.ts so it can be imported by tests
  * without starting the HTTP listener.
+ *
+ * MongoDB collections (15 total):
+ *   accounts, activities, auditlogs, decisions, driftevents, floodlookups,
+ *   hazardlookups (NEW), locations, policies, portfolioconfigs, products (NEW),
+ *   risksnapshots, ruleversions, signals, users.
  */
 export function createApp(): express.Application {
   const app = express();

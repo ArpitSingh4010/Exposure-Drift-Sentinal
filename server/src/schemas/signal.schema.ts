@@ -30,6 +30,31 @@ const floodUpdatePayload = z
     'floodZone or floodScore is required',
   );
 
+export const hazardEnum = z.enum([
+  'flood',
+  'earthquake',
+  'tsunami',
+  'cyclone',
+  'wildfire',
+  'landslide',
+  'tornado',
+  'severe_storm',
+]);
+
+const hazardUpdatePayload = z
+  .object({
+    hazard: hazardEnum,
+    locationId: z.string().trim().min(1).optional(),
+    addressLine: z.string().trim().min(1).optional(),
+    postalCode: z.string().trim().min(1).optional(),
+    band: z.string().trim().min(1).optional(),
+    score: z.number().int().min(1).max(10).optional(),
+  })
+  .refine(
+    (payload) => Boolean(payload.locationId || (payload.addressLine && payload.postalCode)),
+    'locationId or addressLine and postalCode is required',
+  );
+
 export const signalBodySchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('PROPERTY_CHANGE'),
@@ -46,6 +71,14 @@ export const signalBodySchema = z.discriminatedUnion('type', [
     policyId: z.string().trim().min(1).optional(),
     insuredName: z.string().trim().min(1).optional(),
     payload: floodUpdatePayload,
+  }),
+  z.object({
+    type: z.literal('HAZARD_UPDATE'),
+    source: z.string().trim().min(1),
+    observedAt: z.coerce.date(),
+    policyId: z.string().trim().min(1).optional(),
+    insuredName: z.string().trim().min(1).optional(),
+    payload: hazardUpdatePayload,
   }),
 ]);
 

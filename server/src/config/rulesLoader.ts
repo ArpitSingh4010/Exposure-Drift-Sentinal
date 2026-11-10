@@ -14,6 +14,14 @@ export interface TivTier {
   label: string;
 }
 
+/** Per-hazard configuration entry in rules.yaml hazards section. */
+export interface HazardConfig {
+  label: string;
+  bandOrder: string[];
+  highRiskBands: string[];
+  appetiteCapPct: number;
+}
+
 export interface RulesConfig {
   version: string; // content hash
   rules: {
@@ -37,6 +45,12 @@ export interface RulesConfig {
   appetite: {
     defaultFloodCapPct: number;
   };
+  /**
+   * Per-hazard registry added in multi-hazard phase.
+   * Optional so old rules.yaml files (without this section) remain valid:
+   * the hazard service falls back to flood-only defaults.
+   */
+  hazards?: Record<string, HazardConfig>;
 }
 
 // ── Loader ─────────────────────────────────────────────────────────────────

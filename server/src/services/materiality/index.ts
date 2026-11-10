@@ -3,15 +3,25 @@ import type {
   Change,
   FloodScoreChange,
   FloodZoneChange,
+  HazardBandChange,
+  HazardScoreChange,
   NewLocationChange,
   TivChange,
 } from '../detection/index.js';
 import type { SnapshotState } from '../../models/RiskSnapshot.js';
 import type { RuleBreakdownEntry, Severity } from '../../models/DriftEvent.js';
+import type { HazardId } from '../hazards/index.js';
+import { isHighRisk, isWorsening, getHazardConfig } from '../hazards/index.js';
 
 export interface MaterialityContext {
   before?: SnapshotState;
   after?: SnapshotState;
+  /**
+   * Which hazard IDs to evaluate for R3/R4/R5 (non-flood).
+   * Defaults to all hazards present in the changes list.
+   * Pass a product's monitoredHazards to restrict scoring.
+   */
+  monitoredHazards?: HazardId[];
 }
 
 export interface MaterialityResult {
@@ -65,6 +75,11 @@ function newLocationRule(changes: Change[], rules: RulesConfig): RuleBreakdownEn
   };
 }
 
+/**
+ * R3 (flood path) — fires when a location enters a high-risk flood zone.
+ * Uses the legacy R3_HIGH_FLOOD_ZONE rule keys for backward compatibility
+ * with all existing tests and audit records.
+ */
 function highFloodRule(changes: Change[], rules: RulesConfig): RuleBreakdownEntry | null {
   const newLocation = changes.find(
     (candidate): candidate is NewLocationChange =>
@@ -104,6 +119,105 @@ function floodScoreRule(changes: Change[], rules: RulesConfig): RuleBreakdownEnt
   };
 }
 
+/**
+ * R3 (non-flood hazard path) — fires once per hazard per location when the
+ * new band is in that hazard's highRiskBands. Points come from rules.yaml.
+ * Returns one entry per hazard that fired (counted once per hazard per event).
+ */
+function hazardBandRules(
+  changes: Change[],
+  rules: RulesConfig,
+  monitoredHazards?: HazardId[],
+): RuleBreakdownEntry[] {
+  if (!rules.hazards) return [];
+  const bandChanges = changes.filter(
+    (c): c is HazardBandChange => c.type === 'HAZARD_BAND_WORSENED',
+  );
+  // Also pick up new locations placed in a high-risk hazard band.
+  const newLocChanges = changes.filter(
+    (c): c is NewLocationChange => c.type === 'NEW_LOCATION',
+  );
+
+  const fired = new Map<HazardId, RuleBreakdownEntry>();
+
+  for (const change of bandChanges) {
+    if (monitoredHazards && !monitoredHazards.includes(change.hazard)) continue;
+    if (fired.has(change.hazard)) continue; // once per hazard per event
+    try {
+      if (!isHighRisk(rules, change.hazard, change.newBand)) continue;
+      if (!isWorsening(rules, change.hazard, change.oldBand, change.newBand)) continue;
+      const cfg = getHazardConfig(rules, change.hazard);
+      fired.set(change.hazard, {
+        ruleId: 'R3_HIGH_FLOOD_ZONE', // kept for rule-id consistency; label differs
+        points: rules.rules.R3_HIGH_FLOOD_ZONE.points,
+        reason: `${cfg.label} band moved from ${change.oldBand} to ${change.newBand} (high-risk).`,
+        evidenceRefs: [`changes.HAZARD_BAND_WORSENED.${change.hazard}.newBand`],
+      });
+    } catch {
+      // Unknown band — skip; schema validation catches this upstream.
+    }
+  }
+
+  // New location placed directly in a high-risk non-flood band.
+  for (const change of newLocChanges) {
+    const hazardMap = change.location.hazards ?? {};
+    for (const [hid, reading] of Object.entries(hazardMap) as [HazardId, { band: string; score: number }][]) {
+      if (monitoredHazards && !monitoredHazards.includes(hid)) continue;
+      if (fired.has(hid)) continue;
+      try {
+        if (!isHighRisk(rules, hid, reading.band)) continue;
+        const cfg = getHazardConfig(rules, hid);
+        fired.set(hid, {
+          ruleId: 'R3_HIGH_FLOOD_ZONE',
+          points: rules.rules.R3_HIGH_FLOOD_ZONE.points,
+          reason: `New location placed in high-risk ${cfg.label} band ${reading.band}.`,
+          evidenceRefs: [`changes.NEW_LOCATION.hazards.${hid}.band`],
+        });
+      } catch {
+        // skip
+      }
+    }
+  }
+
+  return Array.from(fired.values());
+}
+
+/**
+ * R4 (non-flood hazard path) — fires when a monitored hazard score increases
+ * by >= minDelta. Points come from rules.yaml R4_FLOOD_SCORE_WORSENED.minDelta.
+ */
+function hazardScoreRules(
+  changes: Change[],
+  rules: RulesConfig,
+  monitoredHazards?: HazardId[],
+): RuleBreakdownEntry[] {
+  if (!rules.hazards) return [];
+  const minDelta = rules.rules.R4_FLOOD_SCORE_WORSENED.minDelta;
+  const points   = rules.rules.R4_FLOOD_SCORE_WORSENED.points;
+
+  const fired = new Map<HazardId, RuleBreakdownEntry>();
+
+  for (const change of changes) {
+    if (change.type !== 'HAZARD_SCORE_WORSENED') continue;
+    if (monitoredHazards && !monitoredHazards.includes(change.hazard)) continue;
+    if (fired.has(change.hazard)) continue;
+    if (change.delta < minDelta) continue;
+    try {
+      const cfg = getHazardConfig(rules, change.hazard);
+      fired.set(change.hazard, {
+        ruleId: 'R4_FLOOD_SCORE_WORSENED',
+        points,
+        reason: `${cfg.label} score increased from ${change.old} to ${change.new} (delta ${change.delta}).`,
+        evidenceRefs: [`changes.HAZARD_SCORE_WORSENED.${change.hazard}.old`, `changes.HAZARD_SCORE_WORSENED.${change.hazard}.new`],
+      });
+    } catch {
+      // skip unknown hazard
+    }
+  }
+
+  return Array.from(fired.values());
+}
+
 export function deriveSeverity(score: number, rules: RulesConfig, forceHigh = false): Severity | null {
   if (forceHigh || score >= rules.severity.HIGH.minScore) return 'HIGH';
   if (score >= rules.severity.MEDIUM.minScore) return 'MEDIUM';
@@ -116,16 +230,30 @@ export function scoreChanges(
   rules: RulesConfig,
   context?: MaterialityContext,
 ): MaterialityResult {
-  const breakdown = [
+  const monitoredHazards = context?.monitoredHazards;
+
+  // ── Core rules (unchanged) ─────────────────────────────────────────────
+  const floodBreakdown = [
     tivRule(changes, rules, context),
     newLocationRule(changes, rules),
     highFloodRule(changes, rules),
     floodScoreRule(changes, rules),
   ].filter((entry): entry is RuleBreakdownEntry => entry !== null);
+
+  // ── Multi-hazard rules (R3/R4 for non-flood hazards) ──────────────────
+  const hazardBreakdown: RuleBreakdownEntry[] = [
+    ...hazardBandRules(changes, rules, monitoredHazards),
+    ...hazardScoreRules(changes, rules, monitoredHazards),
+  ];
+
+  const breakdown = [...floodBreakdown, ...hazardBreakdown];
   const score = breakdown.reduce((sum, entry) => sum + entry.points, 0);
-  const requiredRules = rules.rules.R5_COMBINED_ESCALATION.requires;
+
+  // ── R5: force HIGH when new location AND any R3 fired (flood or hazard) ─
   const firedRuleIds = new Set(breakdown.map((entry) => entry.ruleId));
-  const forceHigh = requiredRules.every((ruleId) => firedRuleIds.has(ruleId));
+  const hasNewLocation = firedRuleIds.has('R2_NEW_LOCATION');
+  const hasHighHazard  = firedRuleIds.has('R3_HIGH_FLOOD_ZONE'); // used for both flood & non-flood R3
+  const forceHigh = hasNewLocation && hasHighHazard;
 
   return {
     score,
@@ -136,7 +264,7 @@ export function scoreChanges(
           {
             ruleId: 'R5_COMBINED_ESCALATION',
             points: 0,
-            reason: 'New location and high-risk flood exposure require HIGH severity.',
+            reason: 'New location and high-risk hazard exposure require HIGH severity.',
             evidenceRefs: ['R2_NEW_LOCATION', 'R3_HIGH_FLOOD_ZONE'],
           },
         ]

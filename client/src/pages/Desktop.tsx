@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SeverityChip } from '@/components/SeverityChip';
 import { useActivities, useEvents } from '@/hooks/useApi';
 import { useUserStore } from '@/hooks/useUserStore';
+import type { EventRecord } from '@/api/client';
 
 function formatMoney(value: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -16,15 +17,53 @@ function isOverdue(dueDate: string, status: string): boolean {
   return status === 'OPEN' && new Date(dueDate).getTime() < Date.now();
 }
 
+const HAZARD_OPTIONS = [
+  { value: 'ALL',          label: 'All perils' },
+  { value: 'flood',        label: 'Flood' },
+  { value: 'earthquake',   label: 'Earthquake' },
+  { value: 'tsunami',      label: 'Tsunami' },
+  { value: 'cyclone',      label: 'Cyclone / Hurricane' },
+  { value: 'wildfire',     label: 'Wildfire' },
+  { value: 'landslide',    label: 'Landslide' },
+  { value: 'tornado',      label: 'Tornado' },
+  { value: 'severe_storm', label: 'Severe storm' },
+];
+
+function resolveEventHazard(event: EventRecord): string {
+  if (event.hazard) return event.hazard;
+  const changeWithHazard = event.changes.find((c) => typeof c.hazard === 'string');
+  if (changeWithHazard && typeof changeWithHazard.hazard === 'string') {
+    return changeWithHazard.hazard;
+  }
+  const isFloodChange = event.changes.some((c) =>
+    String(c.type ?? '').toLowerCase().includes('flood'),
+  );
+  if (isFloodChange) return 'flood';
+  return 'commercial';
+}
+
 export function Desktop(): React.ReactElement {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { userId: currentUser } = useUserStore();
   const eventsQuery = useEvents();
   const activitiesQuery = useActivities();
-  const [severity, setSeverity] = useState('ALL');
-  const [status, setStatus] = useState('OPEN');
-  const [mine, setMine] = useState(false);
-  const [search, setSearch] = useState('');
+
+  const hazardParam = searchParams.get('hazard') ?? 'ALL';
+  const severity = searchParams.get('severity') ?? 'ALL';
+  const status = searchParams.get('status') ?? 'OPEN';
+  const mine = searchParams.get('mine') === 'true';
+  const search = searchParams.get('q') ?? '';
+
+  const updateParam = (key: string, value: string) => {
+    const next = new URLSearchParams(searchParams);
+    if (value === 'ALL' || !value) {
+      next.delete(key);
+    } else {
+      next.set(key, value);
+    }
+    setSearchParams(next, { replace: true });
+  };
 
   const events = eventsQuery.data ?? [];
   const activities = activitiesQuery.data ?? [];
@@ -38,6 +77,10 @@ export function Desktop(): React.ReactElement {
         if (status !== 'ALL' && activity.status !== status) return false;
         if (severity !== 'ALL' && event.severity !== severity) return false;
         if (mine && activity.assigneeUserId !== currentUser) return false;
+
+        const evHazard = resolveEventHazard(event);
+        if (hazardParam !== 'ALL' && evHazard !== hazardParam) return false;
+
         if (search.trim()) {
           const q = search.toLowerCase();
           const matchPolicy = event.policyId.toLowerCase().includes(q);
@@ -47,7 +90,7 @@ export function Desktop(): React.ReactElement {
         }
         return true;
       });
-  }, [activities, eventById, status, severity, mine, currentUser, search]);
+  }, [activities, eventById, status, severity, mine, currentUser, search, hazardParam]);
 
   const openCount = activities.filter((activity) => activity.status === 'OPEN').length;
   const highCount = activities.filter((a) => {
@@ -72,7 +115,7 @@ export function Desktop(): React.ReactElement {
   if (eventsQuery.isError || activitiesQuery.isError) {
     return (
       <div className="p-6">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-xs font-medium">
+        <div className="bg-red-50 border border-red-200 text-red-700 rounded p-4 text-xs font-medium">
           Unable to connect to Sentinel server. Verify server is running on port 4000.
         </div>
       </div>
@@ -80,135 +123,130 @@ export function Desktop(): React.ReactElement {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 fade-in max-w-7xl">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
-          <h1 className="text-2xl font-heading font-bold text-slate-900 tracking-tight">
-            Review Queue
+          <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+            Underwriter Review Queue
           </h1>
-          <p className="text-xs text-slate-500 mt-1 font-normal">
-            Exposure changes on bound commercial property policies requiring underwriter review.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Real-time exposure drift across bound commercial property policies and monitored hazards.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => navigate('/simulator')}
             className="btn-primary"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Simulate Signal
+            <span>Simulate signal</span>
           </button>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 stagger">
-        <div className="kpi-card p-4 slide-up">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Open Reviews</div>
-          <div className="text-3xl font-heading font-bold text-slate-900">{openCount}</div>
-          <div className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            Pending review
-          </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="kpi-card p-4">
+          <div className="text-xs font-medium text-slate-500 mb-2">Open reviews</div>
+          <div className="text-2xl font-semibold text-slate-900">{openCount}</div>
+          <div className="text-xs text-slate-500 mt-1">Pending underwriter review</div>
         </div>
 
-        <div className="kpi-card p-4 slide-up">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">High Severity</div>
-          <div className="text-3xl font-heading font-bold text-slate-900">{highCount}</div>
-          <div className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            2-day SLA window
-          </div>
+        <div className="kpi-card p-4">
+          <div className="text-xs font-medium text-slate-500 mb-2">High severity</div>
+          <div className="text-2xl font-semibold text-slate-900">{highCount}</div>
+          <div className="text-xs text-red-700 font-medium mt-1">2 business day SLA</div>
         </div>
 
-        <div className={`kpi-card p-4 slide-up ${overdueCount > 0 ? 'kpi-card-danger' : ''}`}>
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Overdue</div>
-          <div className={`text-3xl font-heading font-bold ${overdueCount > 0 ? 'text-red-600' : 'text-slate-900'}`}>{overdueCount}</div>
-          <div className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            SLA exceeded
-          </div>
+        <div className={`kpi-card p-4 ${overdueCount > 0 ? 'kpi-card-danger' : ''}`}>
+          <div className="text-xs font-medium text-slate-500 mb-2">Overdue</div>
+          <div className={`text-2xl font-semibold ${overdueCount > 0 ? 'text-red-700' : 'text-slate-900'}`}>{overdueCount}</div>
+          <div className="text-xs text-slate-500 mt-1">Due date exceeded</div>
         </div>
 
-        <div className="kpi-card p-4 slide-up">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-3">Verify First</div>
-          <div className="text-3xl font-heading font-bold text-slate-900">{verifyCount}</div>
-          <div className="text-xs text-slate-400 mt-1.5 flex items-center gap-1">
-            <svg className="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            &lt;75% confidence
-          </div>
+        <div className="kpi-card p-4">
+          <div className="text-xs font-medium text-slate-500 mb-2">Verification gated</div>
+          <div className="text-2xl font-semibold text-slate-900">{verifyCount}</div>
+          <div className="text-xs text-amber-700 font-medium mt-1">Under 75% match confidence</div>
         </div>
       </div>
 
       {/* Activities Table Card */}
       <section className="eds-card overflow-hidden">
         {/* Table Filter Toolbar */}
-        <div className="p-3.5 sm:px-4 border-b border-slate-100/80 bg-white/60 flex flex-wrap items-center justify-between gap-3">
+        <div className="p-3 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-1 max-w-sm relative">
-            <svg className="absolute left-3 w-3.5 h-3.5 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
             <input
               type="text"
-              placeholder="Filter by policy # or subject..."
+              placeholder="Search policy #, event, or subject..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="eds-input w-full pl-9"
+              onChange={(e) => updateParam('q', e.target.value)}
+              className="eds-input w-full"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {/* Hazard Peril Filter */}
+            <select
+              value={hazardParam}
+              onChange={(e) => updateParam('hazard', e.target.value)}
+              className="eds-select"
+              aria-label="Filter peril"
+            >
+              {HAZARD_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+
+            {/* Severity Filter */}
             <select
               value={severity}
-              onChange={(e) => setSeverity(e.target.value)}
+              onChange={(e) => updateParam('severity', e.target.value)}
               className="eds-select"
               aria-label="Filter severity"
             >
-              <option value="ALL">All Severities</option>
+              <option value="ALL">All severities</option>
               <option value="HIGH">High</option>
               <option value="MEDIUM">Medium</option>
               <option value="LOW">Low</option>
             </select>
 
+            {/* Status Filter */}
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={(e) => updateParam('status', e.target.value)}
               className="eds-select"
               aria-label="Filter status"
             >
-              <option value="OPEN">Open Only</option>
-              <option value="ALL">All Statuses</option>
+              <option value="OPEN">Open only</option>
+              <option value="ALL">All statuses</option>
               <option value="COMPLETED">Completed</option>
             </select>
 
-            <label className="flex items-center gap-1.5 text-xs text-slate-600 border border-slate-200 rounded-xl px-2.5 py-2 bg-white/80 cursor-pointer hover:border-slate-300 hover:bg-white transition-all">
+            <label className="flex items-center gap-1.5 text-xs text-slate-700 border border-slate-200 rounded px-2.5 py-1.5 bg-white cursor-pointer hover:border-slate-300">
               <input
                 type="checkbox"
                 checked={mine}
-                onChange={(e) => setMine(e.target.checked)}
-                className="rounded border-slate-300 text-slate-900"
+                onChange={(e) => updateParam('mine', e.target.checked ? 'true' : 'false')}
+                className="rounded border-slate-300 text-blue-600"
               />
-              Mine only
+              <span>Assigned to me</span>
             </label>
           </div>
         </div>
 
         {/* Table Body */}
         {rows.length === 0 ? (
-          <div className="p-16 flex flex-col items-center justify-center gap-3 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-              <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-slate-700">No activities found</div>
-              <div className="text-xs text-slate-400 mt-1">Try adjusting your filters or simulate a new signal</div>
-            </div>
+          <div className="p-12 flex flex-col items-center justify-center gap-2 text-center text-slate-500">
+            <div className="text-sm font-medium text-slate-700">No review activities match current filters</div>
+            <div className="text-xs text-slate-400">Try adjusting peril, severity, or search parameters</div>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -216,11 +254,12 @@ export function Desktop(): React.ReactElement {
               <thead>
                 <tr>
                   <th>Severity</th>
+                  <th>Peril</th>
                   <th>Policy</th>
-                  <th>Subject & Details</th>
-                  <th>Match Confidence</th>
+                  <th>Activity subject</th>
+                  <th>Match</th>
                   <th>Status</th>
-                  <th>Due Date</th>
+                  <th>Due date</th>
                   <th>Assignee</th>
                 </tr>
               </thead>
@@ -228,6 +267,9 @@ export function Desktop(): React.ReactElement {
                 {rows.map(({ activity, event }) => {
                   if (!event) return null;
                   const overdue = isOverdue(activity.dueDate, activity.status);
+                  const hazardId = resolveEventHazard(event);
+                  const hazardLabel =
+                    HAZARD_OPTIONS.find((h) => h.value === hazardId)?.label ?? hazardId;
 
                   return (
                     <tr
@@ -236,15 +278,18 @@ export function Desktop(): React.ReactElement {
                       onClick={() => navigate(`/events/${event.eventId}`)}
                     >
                       <td>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           <SeverityChip severity={event.severity} />
-                          {event.verifyFirst && (
-                            <span className="chip chip-verify">Verify</span>
-                          )}
                           {event.portfolioBreach && (
                             <span className="chip chip-high">Breach</span>
                           )}
                         </div>
+                      </td>
+
+                      <td>
+                        <span className="text-xs font-medium text-slate-700 capitalize">
+                          {hazardLabel}
+                        </span>
                       </td>
 
                       <td>
@@ -257,45 +302,37 @@ export function Desktop(): React.ReactElement {
                       </td>
 
                       <td>
-                        <div className="max-w-[340px] truncate font-medium text-slate-800">
+                        <div className="max-w-[320px] truncate font-medium text-slate-800">
                           {activity.subject}
                         </div>
                         <div className="text-xs text-slate-500 mt-0.5">
-                          {event.changes.length} change{event.changes.length === 1 ? '' : 's'} &bull; After TIV: {formatMoney(event.after.totalTiv)}
+                          {event.changes.length} change{event.changes.length === 1 ? '' : 's'}, after TIV {formatMoney(event.after.totalTiv)}
                         </div>
                       </td>
 
                       <td>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-xs text-slate-700">
-                            {Math.round(event.confidence * 100)}%
-                          </span>
-                          <div className="w-12 h-1 bg-slate-200 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-slate-700 rounded-full"
-                              style={{ width: `${Math.round(event.confidence * 100)}%` }}
-                            />
-                          </div>
-                        </div>
-                      </td>
-
-                      <td>
-                        <span className="chip chip-open">
-                          {event.status.replace(/_/g, ' ')}
+                        <span className="text-xs text-slate-700 font-medium">
+                          {Math.round(event.confidence * 100)}%
                         </span>
                       </td>
 
                       <td>
-                        <div className={overdue ? 'text-red-700 font-semibold' : 'text-slate-700'}>
+                        <span className="chip chip-open">
+                          {event.status.replace(/_/g, ' ').toLowerCase()}
+                        </span>
+                      </td>
+
+                      <td>
+                        <div className={overdue ? 'text-red-700 font-medium' : 'text-slate-700'}>
                           {new Date(activity.dueDate).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                           })}
                         </div>
                         {overdue && (
-                          <div className="text-[10px] uppercase font-bold text-red-600">
+                          <span className="text-[10px] text-red-600 font-medium">
                             Overdue
-                          </div>
+                          </span>
                         )}
                       </td>
 
@@ -305,7 +342,7 @@ export function Desktop(): React.ReactElement {
                         </div>
                         {activity.seniorFlag && (
                           <span className="text-[10px] text-amber-700">
-                            Senior UW Flag
+                            Senior referral
                           </span>
                         )}
                       </td>

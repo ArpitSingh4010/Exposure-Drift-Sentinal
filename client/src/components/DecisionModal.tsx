@@ -21,18 +21,18 @@ export function DecisionModal({
 
   const actionDetails =
     action === 'ACCEPT'
-      ? { title: 'Accept Exposure Change', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', btn: 'bg-slate-900 text-white hover:bg-slate-800' }
+      ? { title: 'Accept Exposure Change', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
       : action === 'REQUEST_INFO'
-        ? { title: 'Request Underwriting Information', badge: 'bg-amber-50 text-amber-700 border-amber-200', btn: 'bg-slate-900 text-white hover:bg-slate-800' }
-        : { title: 'Dismiss Drift Event', badge: 'bg-slate-100 text-slate-700 border-slate-200', btn: 'bg-slate-900 text-white hover:bg-slate-800' };
+        ? { title: 'Request Underwriting Information', badge: 'bg-amber-50 text-amber-700 border-amber-200' }
+        : { title: 'Dismiss Drift Event', badge: 'bg-slate-100 text-slate-700 border-slate-200' };
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center p-4 fade-in"
+      className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4"
       role="presentation"
     >
       <section
-        className="bg-white w-full max-w-lg rounded-xl shadow-xl border border-slate-200 overflow-hidden slide-in"
+        className="bg-white w-full max-w-lg rounded-lg shadow-lg border border-slate-200 overflow-hidden"
         role="dialog"
         aria-modal="true"
         aria-labelledby="decision-title"
@@ -40,11 +40,11 @@ export function DecisionModal({
         <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border uppercase ${actionDetails.badge}`}>
+              <span className={`text-[11px] font-medium px-2 py-0.5 rounded border ${actionDetails.badge}`}>
                 {action.replace(/_/g, ' ')}
               </span>
             </div>
-            <h2 id="decision-title" className="font-heading font-semibold text-lg text-slate-900 mt-1">
+            <h2 id="decision-title" className="font-semibold text-base text-slate-900 mt-1">
               {actionDetails.title}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -54,7 +54,7 @@ export function DecisionModal({
           <button
             type="button"
             onClick={onCancel}
-            className="w-7 h-7 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-200 flex items-center justify-center transition-colors"
+            className="w-7 h-7 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Close modal"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,12 +65,12 @@ export function DecisionModal({
 
         <div className="p-5 space-y-4">
           {action === 'DISMISS' && (
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+            <label className="block text-xs font-medium text-slate-700">
               Reason
               <select
                 value={reasonCode}
                 onChange={(event) => setReasonCode(event.target.value)}
-                className="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 bg-white text-xs text-slate-800 focus:border-slate-500 outline-none"
+                className="mt-1 w-full border border-slate-300 rounded px-3 py-2 bg-white text-xs text-slate-800 focus:border-blue-600 outline-none"
               >
                 <option value="">Select a reason code</option>
                 <option value="not_material">Not material to risk</option>
@@ -81,13 +81,13 @@ export function DecisionModal({
             </label>
           )}
 
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+          <label className="block text-xs font-medium text-slate-700">
             Note
             <textarea
               value={note}
               onChange={(event) => setNote(event.target.value)}
               rows={4}
-              className="mt-1 w-full border border-slate-300 rounded-lg p-3 text-xs text-slate-800 focus:border-slate-500 outline-none resize-none"
+              className="mt-1 w-full border border-slate-300 rounded p-2.5 text-xs text-slate-800 focus:border-blue-600 outline-none resize-none"
               placeholder="State the decision rationale..."
             />
           </label>
@@ -103,7 +103,7 @@ export function DecisionModal({
           <button
             type="button"
             onClick={onCancel}
-            className="px-3.5 py-1.5 text-xs font-medium border border-slate-300 rounded-lg bg-white hover:bg-slate-50 text-slate-700 transition-colors"
+            className="px-3.5 py-1.5 text-xs font-medium border border-slate-300 rounded bg-white hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -117,7 +117,7 @@ export function DecisionModal({
                 ...(reasonCode ? { reasonCode } : {}),
               })
             }
-            className={`px-4 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-50 ${actionDetails.btn}`}
+            className="btn-primary disabled:opacity-50"
           >
             {busy ? 'Saving...' : 'Confirm'}
           </button>

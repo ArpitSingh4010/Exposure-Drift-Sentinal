@@ -6,3 +6,6 @@ coverage
 .env.local
 *.log
 mongo-data
+.agent/
+.hallmark/
+

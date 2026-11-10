@@ -1,6 +1,6 @@
 import { Schema, model, Document } from 'mongoose';
 
-export type SignalType = 'PROPERTY_CHANGE' | 'FLOOD_UPDATE';
+export type SignalType = 'PROPERTY_CHANGE' | 'FLOOD_UPDATE' | 'HAZARD_UPDATE';
 export type SignalResolutionStatus = 'RESOLVED' | 'UNMATCHED' | 'VERIFY_FIRST';
 
 export interface ISignal extends Document {
@@ -20,7 +20,7 @@ export interface ISignal extends Document {
 const SignalSchema = new Schema<ISignal>(
   {
     signalId: { type: String, required: true, unique: true, index: true },
-    type: { type: String, enum: ['PROPERTY_CHANGE', 'FLOOD_UPDATE'], required: true },
+    type: { type: String, enum: ['PROPERTY_CHANGE', 'FLOOD_UPDATE', 'HAZARD_UPDATE'], required: true },
     source: { type: String, required: true },
     observedAt: { type: Date, required: true },
     receivedAt: { type: Date, required: true, default: () => new Date() },

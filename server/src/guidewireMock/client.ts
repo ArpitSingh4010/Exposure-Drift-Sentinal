@@ -6,6 +6,7 @@ import { Activity, type ActivityPriority, type IActivity } from '../models/Activ
 import { Location } from '../models/Location.js';
 import { Policy } from '../models/Policy.js';
 import { PortfolioConfig } from '../models/PortfolioConfig.js';
+import { Product } from '../models/Product.js';
 import { RiskSnapshot } from '../models/RiskSnapshot.js';
 import { User } from '../models/User.js';
 
@@ -28,6 +29,8 @@ export interface CompleteActivityInput {
 export interface GuidewireClient {
   getPolicy(policyId: string, session?: ClientSession): Promise<unknown>;
   getAccount(accountId: string, session?: ClientSession): Promise<unknown>;
+  getProductDefinitions(session?: ClientSession): Promise<unknown[]>;
+  getProductDefinition(productCode: string, session?: ClientSession): Promise<unknown | null>;
   createActivity(input: CreateActivityInput, session?: ClientSession): Promise<IActivity>;
   completeActivity(
     activityId: string,
@@ -57,6 +60,18 @@ export class InProcessGuidewireClient implements GuidewireClient {
 
   async getAccount(accountId: string, session?: ClientSession): Promise<unknown> {
     const query = Account.findOne({ accountId }).lean();
+    if (session) query.session(session);
+    return query.exec();
+  }
+
+  async getProductDefinitions(session?: ClientSession): Promise<unknown[]> {
+    const query = Product.find().sort({ productCode: 1 }).lean();
+    if (session) query.session(session);
+    return query.exec();
+  }
+
+  async getProductDefinition(productCode: string, session?: ClientSession): Promise<unknown | null> {
+    const query = Product.findOne({ productCode }).lean();
     if (session) query.session(session);
     return query.exec();
   }

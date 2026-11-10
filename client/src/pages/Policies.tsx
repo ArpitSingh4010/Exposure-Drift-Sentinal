@@ -13,6 +13,18 @@ function formatMoney(value: number): string {
   }).format(value);
 }
 
+export const PRODUCT_LABELS: Record<string, { name: string; description: string }> = {
+  'CP-BASE': { name: 'Base All-Risk', description: 'Monitors all 8 perils' },
+  'CP-FLD':  { name: 'Commercial Flood Coverage', description: 'Monitors flood' },
+  'CP-EQ':   { name: 'Commercial Earthquake Coverage', description: 'Monitors earthquake' },
+  'CP-TSU':  { name: 'Tsunami & Coastal Inundation', description: 'Monitors tsunami' },
+  'CP-WND':  { name: 'Named Storm & Hurricane', description: 'Monitors cyclone/hurricane' },
+  'CP-WLD':  { name: 'Wildfire Coverage', description: 'Monitors wildfire' },
+  'CP-LSL':  { name: 'Landslide & Earth Movement', description: 'Monitors landslide' },
+  'CP-TOR':  { name: 'Tornado & Windstorm', description: 'Monitors tornado' },
+  'CP-SCS':  { name: 'Severe Convective Storm', description: 'Monitors severe storm' },
+};
+
 export function Policies(): React.ReactElement {
   const navigate = useNavigate();
   const { userId } = useUserStore();
@@ -100,16 +112,25 @@ export function Policies(): React.ReactElement {
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <div className="font-heading font-bold text-sm text-slate-900">
-                        {p.policyId}
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm text-slate-900">
+                          {p.policyId}
+                        </span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 font-medium">
+                          {p.productCode ?? 'CP-BASE'}
+                        </span>
                       </div>
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                      <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
                         {p.region}
                       </span>
                     </div>
 
-                    <div className="text-xs font-semibold text-slate-700 mt-1">
+                    <div className="text-xs font-semibold text-slate-900 mt-1">
                       {p.account?.name ?? 'Commercial Insured'}
+                    </div>
+
+                    <div className="text-[11px] text-blue-700 font-medium mt-0.5">
+                      {PRODUCT_LABELS[p.productCode ?? 'CP-BASE']?.name ?? 'Commercial Property'}
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-slate-500 mt-2 pt-1 border-t border-slate-100/60">
@@ -143,19 +164,32 @@ export function Policies(): React.ReactElement {
               {/* Policy Header */}
               <div className="p-6 border-b border-slate-200 bg-slate-50/50 space-y-2">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-heading font-extrabold text-2xl text-slate-900">
-                    {selectedDetail.policy.policyId}
-                  </h2>
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800">
+                  <div className="flex items-center gap-3">
+                    <h2 className="font-semibold text-xl text-slate-900">
+                      {selectedDetail.policy.policyId}
+                    </h2>
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                      {selectedDetail.policy.productCode ?? 'CP-BASE'}
+                    </span>
+                  </div>
+                  <span className="chip chip-open">
                     {selectedDetail.policy.status}
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-slate-700">
-                  {selectedDetail.account?.name ?? 'Commercial Insured'}
-                </p>
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <p className="text-sm font-semibold text-slate-800">
+                    {selectedDetail.account?.name ?? 'Commercial Insured'}
+                  </p>
+                  <span className="text-xs text-slate-400">•</span>
+                  <span className="text-xs font-semibold text-blue-700">
+                    {PRODUCT_LABELS[selectedDetail.policy.productCode ?? 'CP-BASE']?.name ?? 'Commercial Property'}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    ({PRODUCT_LABELS[selectedDetail.policy.productCode ?? 'CP-BASE']?.description ?? 'Monitored hazards'})
+                  </span>
+                </div>
                 <div className="flex items-center gap-4 text-xs text-slate-500 pt-1">
                   <span>Territory: <strong>{selectedDetail.policy.region}</strong></span>
-                  <span>&bull;</span>
                   <span>Premium: <strong>{formatMoney(selectedDetail.policy.premium)}</strong></span>
                 </div>
 
@@ -219,9 +253,18 @@ export function Policies(): React.ReactElement {
                             {loc.locationId}
                           </span>
                         </div>
-                        <div className="text-xs text-slate-600 flex justify-between">
-                          <span>Flood Zone: <strong>{loc.floodZone}</strong> (Score {loc.floodScore})</span>
-                          <span className="font-bold text-slate-900">{formatMoney(loc.tiv)}</span>
+                        <div className="text-xs text-slate-600 flex justify-between items-baseline">
+                          <div>
+                            {loc.floodZone && (
+                              <span>Flood Zone: <strong>{loc.floodZone}</strong> (Score {loc.floodScore})</span>
+                            )}
+                            {loc.hazards && Object.entries(loc.hazards).map(([h, r]) => (
+                              <span key={h} className="block text-slate-500 capitalize">
+                                {h}: <strong>{r.band}</strong> ({r.score}/10)
+                              </span>
+                            ))}
+                          </div>
+                          <span className="font-semibold text-slate-900">{formatMoney(loc.tiv)}</span>
                         </div>
                       </div>
                     ))}

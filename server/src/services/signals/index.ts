@@ -3,8 +3,10 @@ import { getRuleVersion, getRules } from '../../config/rulesLoader.js';
 import { Account } from '../../models/Account.js';
 import { DriftEvent } from '../../models/DriftEvent.js';
 import { FloodLookup } from '../../models/FloodLookup.js';
+import { HazardLookup } from '../../models/HazardLookup.js';
 import { Location } from '../../models/Location.js';
 import { Policy } from '../../models/Policy.js';
+import { Product } from '../../models/Product.js';
 import { RiskSnapshot, type SnapshotLocation, type SnapshotState } from '../../models/RiskSnapshot.js';
 import { Signal, type SignalResolutionStatus } from '../../models/Signal.js';
 import { applySignalToSnapshot, diffSnapshots, type DetectionSignal } from '../detection/index.js';
@@ -18,6 +20,8 @@ import type { SignalRequest } from '../../schemas/signal.schema.js';
 import { guidewireClient } from '../../guidewireMock/client.js';
 import { appendAudit } from '../audit/index.js';
 import { applyEventBreachFlag } from '../portfolio/index.js';
+import { AppError } from '../../middleware/errorHandler.js';
+import { getHazardConfig, HAZARD_IDS, type HazardId } from '../hazards/index.js';
 
 const RESOLUTION_THRESHOLD = 0.75;
 
@@ -33,13 +37,22 @@ export interface IngestResult {
   confidence: number | null;
   event: unknown | null;
   unmatched: boolean;
+  reason?: string;
 }
 
 function normalizedAddress(addressLine: string, postalCode: string): string {
   return `${addressLine.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}|${postalCode.trim()}`;
 }
 
-function idempotencyKey(policyId: string, changeType: string, locationIdOrAddress: string): string {
+function idempotencyKey(
+  policyId: string,
+  changeType: string,
+  locationIdOrAddress: string,
+  hazard?: string,
+): string {
+  if (hazard) {
+    return `${policyId}|${changeType}|${hazard}|${locationIdOrAddress}`;
+  }
   const suffix = changeType === 'NEW_LOCATION'
     ? createHash('sha1').update(locationIdOrAddress).digest('hex')
     : locationIdOrAddress;
@@ -143,14 +156,27 @@ function detectionSignal(
     return { type: 'TIV_CHANGE', locationId, newTiv: payload.tiv };
   }
 
+  if (request.type === 'FLOOD_UPDATE') {
+    const payload = request.payload;
+    const locationId = payload.locationId ?? locations[0]?.locationId;
+    if (!locationId) throw new Error('FLOOD_UPDATE location could not be resolved');
+    return {
+      type: 'FLOOD_UPDATE',
+      locationId,
+      floodZone: payload.floodZone,
+      floodScore: payload.floodScore,
+    };
+  }
+
   const payload = request.payload;
   const locationId = payload.locationId ?? locations[0]?.locationId;
-  if (!locationId) throw new Error('FLOOD_UPDATE location could not be resolved');
+  if (!locationId) throw new Error('HAZARD_UPDATE location could not be resolved');
   return {
-    type: 'FLOOD_UPDATE',
+    type: 'HAZARD_UPDATE',
+    hazard: payload.hazard as HazardId,
     locationId,
-    floodZone: payload.floodZone,
-    floodScore: payload.floodScore,
+    band: payload.band,
+    score: payload.score,
   };
 }
 
@@ -171,7 +197,11 @@ function mergeableEvent(
 async function ingestInSession(request: SignalRequest): Promise<IngestResult> {
   const candidates = await loadCandidates();
   let resolved = resolveEntity(resolutionInput(request), candidates.candidates);
-  if (!resolved && request.type === 'FLOOD_UPDATE' && request.payload.locationId) {
+  if (
+    !resolved &&
+    (request.type === 'FLOOD_UPDATE' || request.type === 'HAZARD_UPDATE') &&
+    request.payload.locationId
+  ) {
     const location = await Location.findOne({ locationId: request.payload.locationId }).lean().exec();
     const candidate = candidates.candidates.find((entry) => entry.policyId === location?.policyId);
     if (candidate) {
@@ -188,12 +218,28 @@ async function ingestInSession(request: SignalRequest): Promise<IngestResult> {
       };
     }
   }
+
+  if (request.type === 'HAZARD_UPDATE' && request.payload.band) {
+    const cfg = getHazardConfig(getRules(), request.payload.hazard as HazardId);
+    if (!cfg.bandOrder.includes(request.payload.band)) {
+      throw new AppError(
+        400,
+        `Invalid band "${request.payload.band}" for hazard "${request.payload.hazard}". Valid bands: ${cfg.bandOrder.join(', ')}`,
+      );
+    }
+  }
+
   const signalId = `SIG-${randomUUID()}`;
   const resolutionStatus: SignalResolutionStatus = !resolved
     ? 'UNMATCHED'
     : resolved.confidence < RESOLUTION_THRESHOLD
       ? 'VERIFY_FIRST'
       : 'RESOLVED';
+
+  const payloadToStore =
+    request.type === 'FLOOD_UPDATE'
+      ? { ...request.payload, hazard: 'flood' }
+      : request.payload;
 
   const signal = await Signal.create(
     [{
@@ -202,7 +248,7 @@ async function ingestInSession(request: SignalRequest): Promise<IngestResult> {
       source: request.source,
       observedAt: request.observedAt,
       receivedAt: new Date(),
-      payload: request.payload,
+      payload: payloadToStore,
       provenance: `Source: ${request.source}`,
       resolutionStatus,
       resolvedPolicyId: resolved?.policyId ?? null,
@@ -214,8 +260,51 @@ async function ingestInSession(request: SignalRequest): Promise<IngestResult> {
     return { signal, resolvedPolicyId: null, confidence: null, event: null, unmatched: true };
   }
 
+  const policy = await Policy.findOne({ policyId: resolved.policyId }).lean().exec();
+  const productCode = policy?.productCode || 'CP-BASE';
+  const product = await Product.findOne({ productCode }).lean().exec();
+  const monitoredHazards: HazardId[] =
+    (product?.monitoredHazards as HazardId[]) || (HAZARD_IDS as unknown as HazardId[]);
+
+  const signalHazard: HazardId | null =
+    request.type === 'HAZARD_UPDATE'
+      ? (request.payload.hazard as HazardId)
+      : request.type === 'FLOOD_UPDATE'
+        ? 'flood'
+        : null;
+
+  if (signalHazard && !monitoredHazards.includes(signalHazard)) {
+    return {
+      signal,
+      resolvedPolicyId: resolved.policyId,
+      confidence: resolved.confidence,
+      event: null,
+      unmatched: false,
+      reason: 'hazard_not_monitored_by_product',
+    };
+  }
+
   const before = await findBaseline(resolved.policyId);
   const policyLocations = candidates.locationsByPolicy.get(resolved.policyId) ?? [];
+
+  if (request.type === 'HAZARD_UPDATE') {
+    const payload = request.payload;
+    if (!payload.band || payload.score === undefined) {
+      let postalCode = payload.postalCode;
+      if (!postalCode && payload.locationId) {
+        const loc = await Location.findOne({ locationId: payload.locationId }).lean().exec();
+        postalCode = loc?.postalCode;
+      }
+      if (postalCode) {
+        const lookup = await HazardLookup.findOne({ postalCode, hazard: payload.hazard }).lean().exec();
+        if (lookup) {
+          if (!payload.band) payload.band = lookup.band;
+          if (payload.score === undefined) payload.score = lookup.score;
+        }
+      }
+    }
+  }
+
   let appliedSignal: DetectionSignal = detectionSignal(request, policyLocations);
   if (request.type === 'PROPERTY_CHANGE' && request.payload.change === 'NEW_LOCATION') {
     const lookup = await floodLookupFor(request.payload);
@@ -229,18 +318,19 @@ async function ingestInSession(request: SignalRequest): Promise<IngestResult> {
     };
   }
   const after = applySignalToSnapshot(before, appliedSignal);
-  const changes = diffSnapshots(before, after);
-  const score = scoreChanges(changes, getRules(), { before, after });
+  const changes = diffSnapshots(before, after, monitoredHazards);
+  const score = scoreChanges(changes, getRules(), { before, after, monitoredHazards });
   if (!score.severity) {
     return { signal, resolvedPolicyId: resolved.policyId, confidence: resolved.confidence, event: null, unmatched: false };
   }
 
   const firstChange = changes[0];
   if (!firstChange) throw new Error('Material event has no changes');
+  const hazard = 'hazard' in firstChange ? (firstChange as { hazard: string }).hazard : undefined;
   const locationKey = firstChange.type === 'NEW_LOCATION'
     ? normalizedAddress(firstChange.location.addressLine, request.payload.postalCode ?? '')
     : firstChange.locationId;
-  const eventKey = idempotencyKey(resolved.policyId, firstChange.type, locationKey);
+  const eventKey = idempotencyKey(resolved.policyId, firstChange.type, locationKey, hazard);
   const existing = await DriftEvent.findOne({ idempotencyKey: eventKey, isOpen: true }).exec();
   if (existing) {
     const merged = mergeableEvent(existing, signalId, score, changes);

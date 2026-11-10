@@ -5,6 +5,8 @@ import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import { createApp } from '../../src/app.js';
 import { ensureIndexes, seedDb } from '../../src/seed/index.js';
 import { DriftEvent } from '../../src/models/DriftEvent.js';
+import { Policy } from '../../src/models/Policy.js';
+import { Product } from '../../src/models/Product.js';
 
 describe('POST /signals', () => {
   let replSet: MongoMemoryReplSet;
@@ -35,7 +37,7 @@ describe('POST /signals', () => {
 
   afterAll(async () => {
     await mongoose.disconnect();
-    await replSet.stop();
+    if (replSet) await replSet.stop();
   }, 30_000);
 
   it('creates a HIGH event and merges a duplicate signal', async () => {
@@ -98,5 +100,87 @@ describe('POST /signals', () => {
     });
     expect(response.status).toBe(201);
     expect(response.body.resolvedPolicyId).toBe('POL-100245');
+  });
+
+  it('creates an event for a valid hazard signal on CP-BASE policy', async () => {
+    // Close any previous open events on POL-100245
+    await DriftEvent.updateMany({ policyId: 'POL-100245', isOpen: true }, { $set: { isOpen: false, status: 'CLOSED' } });
+
+    const response = await request(app).post('/signals').send({
+      type: 'HAZARD_UPDATE',
+      source: 'usgs-seismic',
+      observedAt: '2026-11-01T00:00:00.000Z',
+      policyId: 'POL-100245',
+      payload: {
+        hazard: 'earthquake',
+        locationId: 'LOC-D0001',
+        band: 'very_high',
+        score: 8,
+      },
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body.event).not.toBeNull();
+    expect(response.body.event.severity).toBe('HIGH');
+  });
+
+  it('creates NO event when product does not monitor that hazard', async () => {
+    // Register product that only monitors flood
+    await Product.findOneAndUpdate(
+      { productCode: 'CP-FLD' },
+      {
+        productCode: 'CP-FLD',
+        name: 'Commercial Flood Coverage',
+        lineOfBusiness: 'Commercial Property',
+        primaryHazard: 'flood',
+        monitoredHazards: ['flood'],
+        coverages: [{ code: 'BLD', name: 'Building' }],
+        deductible: { type: 'flat', value: 25000 },
+      },
+      { upsert: true, new: true },
+    );
+
+    // Set policy to CP-FLD
+    await Policy.updateOne({ policyId: 'POL-100245' }, { $set: { productCode: 'CP-FLD' } });
+
+    const response = await request(app).post('/signals').send({
+      type: 'HAZARD_UPDATE',
+      source: 'usgs-seismic',
+      observedAt: '2026-11-01T00:00:00.000Z',
+      policyId: 'POL-100245',
+      payload: {
+        hazard: 'earthquake',
+        locationId: 'LOC-D0001',
+        band: 'very_high',
+        score: 8,
+      },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body.event).toBeNull();
+    expect(response.body.reason).toBe('hazard_not_monitored_by_product');
+
+    // Restore policy to CP-BASE
+    await Policy.updateOne({ policyId: 'POL-100245' }, { $set: { productCode: 'CP-BASE' } });
+  });
+
+  it('returns 400 with valid bands in message for an invalid band', async () => {
+    const response = await request(app).post('/signals').send({
+      type: 'HAZARD_UPDATE',
+      source: 'test-feed',
+      observedAt: '2026-11-01T00:00:00.000Z',
+      policyId: 'POL-100245',
+      payload: {
+        hazard: 'earthquake',
+        locationId: 'LOC-D0001',
+        band: 'CAT_5_EXTREME',
+        score: 8,
+      },
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toContain('Invalid band');
+    expect(response.body.error).toContain('Valid bands:');
+    expect(response.body.error).toContain('very_high');
   });
 });

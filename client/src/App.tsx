@@ -7,6 +7,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Desktop } from '@/pages/Desktop';
 import { Login } from '@/pages/Login';
 import { Policies } from '@/pages/Policies';
+import { Products } from '@/pages/Products';
 import { Portfolio } from '@/pages/Portfolio';
 import { Simulator } from '@/pages/Simulator';
 import { Audit } from '@/pages/Audit';
@@ -33,6 +34,7 @@ function AppShell(): React.ReactElement {
             <Route path="/desktop"         element={<Desktop />} />
             <Route path="/events/:eventId" element={<EventDetail />} />
             <Route path="/policies/*"      element={<Policies />} />
+            <Route path="/products"        element={<Products />} />
             <Route path="/portfolio"       element={<Portfolio />} />
             <Route path="/simulator"       element={<Simulator />} />
             <Route path="/audit"           element={<Audit />} />

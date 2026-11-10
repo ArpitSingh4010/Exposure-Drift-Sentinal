@@ -49,3 +49,57 @@ recommendedActions:
 
 appetite:
   defaultFloodCapPct: 0.20
+
+# ── Multi-hazard registry ─────────────────────────────────────────────────
+# Each hazard entry is used by the hazard service (services/hazards/index.ts).
+# bandOrder is from lowest to highest risk.
+# highRiskBands is the subset that triggers R3.
+# appetiteCapPct: share of total portfolio TIV a region may hold in high-risk bands.
+hazards:
+  flood:
+    label: "Flood"
+    bandOrder: ["X", "B", "A", "AE", "V"]
+    highRiskBands: ["A", "AE", "V"]
+    appetiteCapPct: 0.20
+
+  earthquake:
+    label: "Earthquake"
+    bandOrder: ["low", "moderate", "high", "very_high"]
+    highRiskBands: ["high", "very_high"]
+    appetiteCapPct: 0.25
+
+  tsunami:
+    label: "Tsunami"
+    bandOrder: ["none", "low", "moderate", "high"]
+    highRiskBands: ["high"]
+    appetiteCapPct: 0.25
+
+  cyclone:
+    label: "Cyclone / Hurricane"
+    bandOrder: ["low", "moderate", "high", "extreme"]
+    highRiskBands: ["high", "extreme"]
+    appetiteCapPct: 0.25
+
+  wildfire:
+    label: "Wildfire"
+    bandOrder: ["low", "moderate", "high", "very_high"]
+    highRiskBands: ["high", "very_high"]
+    appetiteCapPct: 0.25
+
+  landslide:
+    label: "Landslide"
+    bandOrder: ["low", "moderate", "high"]
+    highRiskBands: ["high"]
+    appetiteCapPct: 0.25
+
+  tornado:
+    label: "Tornado"
+    bandOrder: ["low", "moderate", "high"]
+    highRiskBands: ["high"]
+    appetiteCapPct: 0.25
+
+  severe_storm:
+    label: "Severe storm"
+    bandOrder: ["low", "moderate", "high"]
+    highRiskBands: ["high"]
+    appetiteCapPct: 0.25

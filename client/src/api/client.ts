@@ -3,6 +3,7 @@ const API_BASE = '/api';
 export interface EventRecord {
   eventId: string;
   policyId: string;
+  hazard?: string;
   status: 'NEW' | 'ACTIVITY_CREATED' | 'IN_REVIEW' | 'INFO_REQUESTED' | 'CLOSED';
   severity: 'LOW' | 'MEDIUM' | 'HIGH';
   score: number;
@@ -20,15 +21,18 @@ export interface EventRecord {
   createdAt?: string;
 }
 
+export interface SnapshotLocation {
+  locationId: string;
+  addressLine: string;
+  tiv: number;
+  floodZone?: string;
+  floodScore?: number;
+  hazards?: Record<string, { band: string; score: number }>;
+}
+
 export interface SnapshotState {
   totalTiv: number;
-  locations: Array<{
-    locationId: string;
-    addressLine: string;
-    tiv: number;
-    floodZone: string;
-    floodScore: number;
-  }>;
+  locations: SnapshotLocation[];
 }
 
 export interface ActivityRecord {
@@ -55,25 +59,65 @@ export interface PortfolioRegion {
   contributingPolicies: Array<{ policyId: string; tiv: number }>;
 }
 
+export interface HazardSummaryRecord {
+  hazard: string;
+  label: string;
+  worstRegion: string;
+  share: number;
+  cap: number;
+  headroom: number;
+  breach: boolean;
+  status: string;
+}
+
 export interface PortfolioExposure {
   totalPortfolioTiv: number;
   regions: PortfolioRegion[];
   whatIfEventId?: string;
+  hazard?: string;
 }
 
 export interface PolicyRecord {
   policyId: string;
   accountId: string;
+  productCode?: string;
   region: string;
   premium: number;
   status: string;
   account?: { name: string } | null;
 }
 
+export interface ProductCoverage {
+  code: string;
+  name: string;
+}
+
+export interface ProductRecord {
+  productCode: string;
+  name: string;
+  lineOfBusiness: string;
+  primaryHazard: string | null;
+  monitoredHazards: string[];
+  coverages: ProductCoverage[];
+  deductible: {
+    type: 'flat' | 'pct_tiv';
+    value: number;
+  };
+  waitingPeriodDays?: number;
+  notes?: string;
+}
+
 export interface PolicyDetail {
   policy: PolicyRecord;
   account: { name: string; industry: string } | null;
-  locations: Array<{ locationId: string; addressLine: string; tiv: number; floodZone: string; floodScore: number }>;
+  locations: Array<{
+    locationId: string;
+    addressLine: string;
+    tiv: number;
+    floodZone?: string;
+    floodScore?: number;
+    hazards?: Record<string, { band: string; score: number }>;
+  }>;
   latestSnapshot: { kind: string; state: SnapshotState } | null;
   drift: EventRecord[];
 }
@@ -115,9 +159,16 @@ export function fetchActivities(userId: string | null): Promise<ActivityRecord[]
   return request<ActivityRecord[]>('/activities', userId);
 }
 
-export function fetchPortfolio(userId: string | null, eventId?: string): Promise<PortfolioExposure> {
-  const suffix = eventId ? `?eventId=${encodeURIComponent(eventId)}` : '';
+export function fetchPortfolio(userId: string | null, eventId?: string, hazard?: string): Promise<PortfolioExposure> {
+  const params = new URLSearchParams();
+  if (eventId) params.set('eventId', eventId);
+  if (hazard) params.set('hazard', hazard);
+  const suffix = params.toString() ? `?${params.toString()}` : '';
   return request<PortfolioExposure>(`/portfolio/exposure${suffix}`, userId);
+}
+
+export function fetchPortfolioSummary(userId: string | null): Promise<HazardSummaryRecord[]> {
+  return request<HazardSummaryRecord[]>('/portfolio/summary', userId);
 }
 
 export function startReview(eventId: string, userId: string): Promise<EventRecord> {
@@ -154,12 +205,24 @@ export function fetchAudit(userId: string | null, filters: { entityType?: string
   return request<AuditRecord[]>(`/audit${params.toString() ? `?${params}` : ''}`, userId);
 }
 
+export function fetchProductDefinitions(userId: string | null): Promise<ProductRecord[]> {
+  return request<ProductRecord[]>('/pc/product-definitions', userId);
+}
+
 export function fetchRules(userId: string | null): Promise<{ version: string; yamlText: string }> {
   return request<{ version: string; yamlText: string }>('/rules', userId);
 }
 
-export function runScenario(userId: string | null, name: string, policyId: string): Promise<SimulatorResult> {
-  return request<SimulatorResult>(`/simulator/scenarios/${name}`, userId, { method: 'POST', body: JSON.stringify({ policyId }) });
+export function runScenario(
+  userId: string | null,
+  name: string,
+  policyId?: string,
+  hazard?: string,
+): Promise<SimulatorResult> {
+  return request<SimulatorResult>(`/simulator/scenarios/${name}`, userId, {
+    method: 'POST',
+    body: JSON.stringify({ policyId, hazard }),
+  });
 }
 
 export interface SimulatorResult {
