@@ -4,13 +4,14 @@ const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(4000),
   /**
-   * Mongo URI. For host-run dev, use:
-   *   mongodb://localhost:27017/eds?replicaSet=rs0&directConnection=true
-   * For Docker Compose, directConnection=false (uses mongo DNS name).
+   * Mongo URI. Defaults to standard local MongoDB on 127.0.0.1:27017/eds.
+   * Can be overridden via MONGO_URI environment variable.
    */
   MONGO_URI: z
     .string()
-    .default('mongodb://localhost:27017/eds?replicaSet=rs0&directConnection=true'),
+    .default(
+      process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eds',
+    ),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
   ENABLE_MAP: z.coerce.boolean().default(false),
 });

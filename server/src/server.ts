@@ -5,6 +5,8 @@ import { logger } from './config/logger.js';
 import { ensureIndexes, seedDb } from './seed/index.js';
 import { loadAndStoreRules } from './config/rulesLoader.js';
 import { Policy } from './models/Policy.js';
+import { Company } from './models/Company.js';
+import { VERIFIED_INDIAN_INSURERS } from './seed/indianInsurersData.js';
 
 async function main(): Promise<void> {
   // ── Connect to MongoDB ────────────────────────────────────────────────────
@@ -20,6 +22,13 @@ async function main(): Promise<void> {
   if (policyCount === 0) {
     logger.info('Database empty — running initial deterministic seed');
     await seedDb();
+  }
+
+  // Ensure Indian Insurers Registry is seeded without wiping existing data
+  const companyCount = await Company.countDocuments();
+  if (companyCount === 0) {
+    logger.info('Seeding verified Indian Guidewire insurers...');
+    await Company.insertMany(VERIFIED_INDIAN_INSURERS);
   }
   logger.info('Indexes, active rules, and data ready');
 

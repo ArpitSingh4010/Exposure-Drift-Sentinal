@@ -14,6 +14,9 @@ import { logger } from './config/logger.js';
 import mongoose from 'mongoose';
 import { ensureIndexes, seedDb } from './seed/index.js';
 import { loadAndStoreRules } from './config/rulesLoader.js';
+import { Policy } from './models/Policy.js';
+import { Company } from './models/Company.js';
+import { VERIFIED_INDIAN_INSURERS } from './seed/indianInsurersData.js';
 
 async function main(): Promise<void> {
   logger.info('Starting embedded MongoMemoryReplSet for local dev...');
@@ -31,9 +34,19 @@ async function main(): Promise<void> {
   logger.info('Mongoose connected to embedded replica set');
   await ensureIndexes();
   await loadAndStoreRules();
-  logger.info('Seeding database with deterministic seed data...');
-  await seedDb();
-  logger.info('Database seeded successfully');
+
+  const policyCount = await Policy.countDocuments();
+  if (policyCount === 0) {
+    logger.info('Seeding database with deterministic seed data...');
+    await seedDb();
+    logger.info('Database seeded successfully');
+  }
+
+  const companyCount = await Company.countDocuments();
+  if (companyCount === 0) {
+    logger.info('Seeding verified Indian Guidewire insurers...');
+    await Company.insertMany(VERIFIED_INDIAN_INSURERS);
+  }
 
   // Start Express
   const app = createApp();
