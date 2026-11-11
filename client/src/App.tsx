@@ -28,7 +28,7 @@ function AppShell(): React.ReactElement {
       <TopBar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto flex flex-col eds-canvas pb-16 md:pb-0">
+        <main className="flex-1 overflow-y-auto flex flex-col app-canvas pb-16 md:pb-0">
           <Routes>
             <Route path="/" element={<Navigate to="/desktop" replace />} />
             <Route path="/desktop"         element={<Desktop />} />
@@ -42,11 +42,11 @@ function AppShell(): React.ReactElement {
             <Route
               path="*"
               element={
-                <div className="flex flex-col items-center justify-center flex-1 p-12 text-center">
-                  <div className="text-6xl mb-4">🧭</div>
-                  <h1 className="text-xl font-heading font-semibold text-slate-800">404 — Page Not Found</h1>
-                  <p className="text-sm text-slate-500 mt-2 max-w-xs">
-                    The page you're looking for doesn't exist in this workspace.
+                <div className="flex flex-col items-center justify-center flex-1 p-12 text-center space-y-2">
+                  <div className="font-mono text-2xl text-[#7A7A74]">404</div>
+                  <h1 className="text-base font-semibold text-[#1A1A18]">Page Not Found</h1>
+                  <p className="text-xs text-[#7A7A74] max-w-xs">
+                    The requested location does not exist in this workspace.
                   </p>
                 </div>
               }

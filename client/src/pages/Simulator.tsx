@@ -182,14 +182,14 @@ export function Simulator(): React.ReactElement {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
+    <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
-            Signal Simulator
+          <h1 className="text-xl font-semibold tracking-tight text-[#1A1A18]">
+            External Signal Simulator
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-[#7A7A74] mt-0.5">
             Inject real-world external signals to evaluate detection rules, multi-hazard materiality, and activity generation.
           </p>
         </div>
@@ -198,38 +198,63 @@ export function Simulator(): React.ReactElement {
           type="button"
           onClick={handleResetDemo}
           disabled={resetting}
-          className="btn-secondary text-xs"
+          className="btn btn-secondary text-xs"
         >
-          <span>{resetting ? 'Resetting...' : 'Reset demo baseline'}</span>
+          {resetting ? 'Resetting Baseline...' : 'Reset Demo Baseline'}
         </button>
       </div>
 
       {resetMessage && (
-        <div className="p-3 rounded bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
+        <div
+          className="p-3 text-xs rounded"
+          style={{
+            backgroundColor: 'var(--green-subtle)',
+            border: '1px solid var(--green-border)',
+            color: 'var(--green-text)',
+          }}
+        >
           {resetMessage}
         </div>
       )}
 
       {error && (
-        <div className="p-3 rounded bg-red-50 border border-red-200 text-xs text-red-800">
+        <div
+          className="p-3 text-xs rounded"
+          style={{
+            backgroundColor: 'var(--risk-high-bg)',
+            border: '1px solid var(--risk-high-border)',
+            color: 'var(--risk-high-text)',
+          }}
+        >
           {error}
         </div>
       )}
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6">
+      {/* Main Grid: Scenario Selector (Left) + Execution & Results (Right) */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6 items-start">
         {/* Scenario Selection */}
-        <section className="eds-card overflow-hidden">
-          <div className="p-4 border-b border-slate-200 bg-slate-50">
-            <h2 className="font-semibold text-sm text-slate-900">
-              Select Scenario
-            </h2>
-            <p className="text-xs text-slate-500">
-              Choose an external signal scenario to simulate.
-            </p>
+        <section className="panel overflow-hidden bg-white">
+          <div
+            className="p-4 border-b flex items-center justify-between"
+            style={{
+              backgroundColor: 'var(--surface-raised)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <div>
+              <h2 className="text-xs font-semibold tracking-tight text-[#1A1A18]">
+                Select Scenario
+              </h2>
+              <p className="text-[11px] text-[#7A7A74]">
+                Choose an external hazard or policy update signal to simulate
+              </p>
+            </div>
+            <span className="text-[11px] text-[#7A7A74]">
+              {SCENARIOS.length} scenarios
+            </span>
           </div>
 
-          <div className="p-4 space-y-2.5 max-h-[580px] overflow-y-auto">
+          <div className="p-3.5 space-y-2 max-h-[620px] overflow-y-auto">
             {SCENARIOS.map((sc) => {
               const isSelected = selectedScenario === sc.name;
 
@@ -244,24 +269,26 @@ export function Simulator(): React.ReactElement {
                       setPolicyId('POL-200101');
                     }
                   }}
-                  className={`p-3.5 rounded border transition-colors cursor-pointer ${
-                    isSelected
-                      ? 'border-blue-600 bg-blue-50/40'
-                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                  className={`p-3 rounded cursor-pointer transition-colors ${
+                    isSelected ? 'border-l-[3px] border-l-[#2D6A4F]' : 'hover:bg-[#FAFAF8]'
                   }`}
+                  style={{
+                    backgroundColor: isSelected ? 'var(--green-subtle)' : '#ffffff',
+                    border: '1px solid var(--border)',
+                  }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-xs text-slate-900">
+                    <span className="font-semibold text-xs text-[#1A1A18]">
                       {sc.label}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                      <span className="badge badge-neutral text-[10px]">
                         {sc.tag}
                       </span>
                       <SeverityChip severity={sc.severity} />
                     </div>
                   </div>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  <p className="text-xs text-[#4A4A45] mt-1 leading-relaxed">
                     {sc.description}
                   </p>
                 </div>
@@ -270,211 +297,244 @@ export function Simulator(): React.ReactElement {
           </div>
         </section>
 
-        {/* Execution & Output Panel */}
-        <section className="eds-card p-5 space-y-4 bg-white flex flex-col justify-between">
-          <div className="space-y-4">
-            <div className="border-b border-slate-200 pb-3">
-              <span className="text-xs font-medium text-slate-500">Active Scenario</span>
-              <h3 className="font-semibold text-base text-slate-900 mt-0.5">
-                {activeScenarioMeta.label}
-              </h3>
-              <p className="text-xs text-slate-600 mt-1">
-                Expected outcome: <strong>{activeScenarioMeta.expectedResult}</strong>
-              </p>
-            </div>
+        {/* Execution & Output Console */}
+        <section className="panel p-5 bg-white space-y-4 sticky top-6">
+          <div className="border-b pb-3" style={{ borderColor: 'var(--border)' }}>
+            <span className="text-[11px] font-medium text-[#7A7A74] uppercase tracking-wider">
+              Active Scenario
+            </span>
+            <h3 className="text-sm font-semibold tracking-tight text-[#1A1A18] mt-0.5">
+              {activeScenarioMeta.label}
+            </h3>
+            <p className="text-xs text-[#4A4A45] mt-1 leading-relaxed">
+              Expected: <strong className="text-[#1A1A18] font-normal">{activeScenarioMeta.expectedResult}</strong>
+            </p>
+          </div>
 
-            {/* Parameter Inputs */}
-            <div className="space-y-3">
-              {activeScenarioMeta.supportsHazard && (
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Monitored peril
-                  </label>
-                  <select
-                    value={selectedHazard}
-                    onChange={(e) => handleHazardChange(e.target.value)}
-                    className="eds-select w-full"
-                  >
-                    {HAZARDS.map((h) => (
-                      <option key={h.id} value={h.id}>
-                        {h.label} (Default: {h.defaultPolicy})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-medium text-slate-700">
-                    Target Policy
-                  </label>
-                  <span className="text-[11px] text-slate-400">
-                    Select a demo policy or enter an ID
-                  </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <select
-                    onChange={(e) => setPolicyId(e.target.value)}
-                    className="eds-select flex-1 text-xs"
-                    value={policyId}
-                  >
-                    <option value="" disabled>Select a target policy...</option>
-                    <optgroup label="⭐ Curated Scenario Demo Policies (1 Per Hazard)">
-                      {demoPolicies.map((p) => {
-                        const prod = productByCode.get(p.productCode ?? 'CP-BASE');
-                        return (
-                          <option key={p.policyId} value={p.policyId}>
-                            {p.policyId} — {p.account?.name ?? 'Insured'} ({prod?.name ?? p.productCode ?? 'CP-BASE'})
-                          </option>
-                        );
-                      })}
-                    </optgroup>
-                    <optgroup label="📁 Portfolio Accumulation Book ($300M Total TIV Invariant)">
-                      {portfolioPolicies.map((p) => {
-                        const prod = productByCode.get(p.productCode ?? 'CP-BASE');
-                        return (
-                          <option key={p.policyId} value={p.policyId}>
-                            {p.policyId} — {p.account?.name ?? 'Commercial Insured'} ({prod?.name ?? p.productCode ?? 'CP-BASE'})
-                          </option>
-                        );
-                      })}
-                    </optgroup>
-                  </select>
-
-                  <input
-                    type="text"
-                    value={policyId}
-                    onChange={(e) => setPolicyId(e.target.value)}
-                    placeholder="Custom ID"
-                    className="eds-input w-28 text-xs font-mono"
-                    title="Directly enter custom or edge-case policy ID"
-                  />
-                </div>
-
-                {/* Selected Policy Context & Peril Gate Explanation Card */}
-                {currentPolicy && (
-                  <div className="rounded-lg border border-slate-200 bg-slate-50/90 p-3 space-y-2 text-xs">
-                    <div className="flex items-center justify-between">
-                      <div className="font-semibold text-slate-900">
-                        {currentPolicy.account?.name ?? 'Commercial Insured'} ({currentPolicy.policyId})
-                      </div>
-                      <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold border border-blue-200">
-                        {currentPolicy.productCode ?? 'CP-BASE'}
-                      </span>
-                    </div>
-
-                    <div className="text-slate-700">
-                      <span className="font-semibold text-slate-900">Product: </span>
-                      {currentProduct?.name ?? 'Commercial Property (Base All-Risk)'}
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 bg-white p-2.5 rounded border border-slate-200/70">
-                      <div>
-                        <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
-                          Monitored Perils
-                        </span>
-                        <span className="font-medium text-slate-800 capitalize">
-                          {currentProduct?.monitoredHazards ? currentProduct.monitoredHazards.join(', ') : 'All 8 Perils'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
-                          Deductible & Terms
-                        </span>
-                        <span className="font-medium text-slate-800">
-                          {currentProduct?.deductible
-                            ? currentProduct.deductible.type === 'flat'
-                              ? `$${currentProduct.deductible.value.toLocaleString()} flat`
-                              : `${(currentProduct.deductible.value * 100).toFixed(0)}% location TIV`
-                            : 'Standard terms'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Product Gating Explanation */}
-                    {activeScenarioMeta.supportsHazard && currentProduct && (
-                      (() => {
-                        const monitorsPeril = currentProduct.monitoredHazards?.includes(selectedHazard);
-                        return monitorsPeril ? (
-                          <div className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded p-2 flex items-start gap-1.5">
-                            <span className="font-bold">✓ Monitored Peril:</span>
-                            <span>This product covers <strong>{selectedHazard}</strong>. Sentinel drift rules (R3/R4) will score this update and create an Underwriter activity.</span>
-                          </div>
-                        ) : (
-                          <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded p-2 space-y-1">
-                            <div className="font-bold flex items-center gap-1">
-                              <span>⚠️ Product Gate Suppressed:</span>
-                            </div>
-                            <p>
-                              This policy product (<strong>{currentProduct.name}</strong>) does <em>not</em> cover <strong>{selectedHazard}</strong>.
-                              Guidewire PolicyCenter product-model rules will suppress this signal (HTTP 200, <code>hazard_not_monitored_by_product</code>) without creating an alert.
-                            </p>
-                          </div>
-                        );
-                      })()
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleRun()}
-                disabled={running}
-                className="btn-primary w-full justify-center disabled:opacity-50 mt-2"
-              >
-                <span>{running ? 'Ingesting & scoring signal...' : 'Run scenario'}</span>
-              </button>
-            </div>
-
-            {/* Results Display */}
-            {lastResult && (
-              <div className="pt-3 border-t border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-800">Scenario Output</span>
-                  {lastResult.event && (
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/events/${lastResult.event?.eventId}`)}
-                      className="text-xs text-blue-700 font-medium hover:underline cursor-pointer"
-                    >
-                      View Drift Event {lastResult.event.eventId}
-                    </button>
-                  )}
-                </div>
-
-                <div className="p-3 rounded bg-slate-50 border border-slate-200 text-xs font-mono text-slate-700 space-y-1">
-                  {lastResult.steps.map((st, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <span className="text-slate-400">{i + 1}.</span>
-                      <span>{st}</span>
-                    </div>
+          {/* Parameter Inputs */}
+          <div className="space-y-3">
+            {activeScenarioMeta.supportsHazard && (
+              <div>
+                <label className="block text-xs font-medium text-[#4A4A45] mb-1" htmlFor="hazard-select">
+                  Monitored Peril
+                </label>
+                <select
+                  id="hazard-select"
+                  value={selectedHazard}
+                  onChange={(e) => handleHazardChange(e.target.value)}
+                  className="field-select w-full"
+                >
+                  {HAZARDS.map((h) => (
+                    <option key={h.id} value={h.id}>
+                      {h.label} (Default: {h.defaultPolicy})
+                    </option>
                   ))}
-                </div>
-
-                {lastResult.event && (
-                  <div className="p-3 rounded bg-white border border-slate-200 text-xs space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Result severity:</span>
-                      <SeverityChip severity={lastResult.event.severity} />
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Materiality score:</span>
-                      <span className="font-semibold text-slate-900">{lastResult.event.score} points</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Portfolio breach:</span>
-                      <span className={`font-semibold ${lastResult.event.portfolioBreach ? 'text-red-600' : 'text-emerald-700'}`}>
-                        {lastResult.event.portfolioBreach ? 'Breach triggered' : 'Within appetite'}
-                      </span>
-                    </div>
-                  </div>
-                )}
+                </select>
               </div>
             )}
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-medium text-[#4A4A45]" htmlFor="policy-select">
+                  Target Policy
+                </label>
+                <span className="text-[11px] text-[#7A7A74]">
+                  Demo policy or custom ID
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <select
+                  id="policy-select"
+                  onChange={(e) => setPolicyId(e.target.value)}
+                  className="field-select flex-1 text-xs"
+                  value={policyId}
+                >
+                  <option value="" disabled>Select a target policy...</option>
+                  <optgroup label="Curated Demo Policies (1 Per Hazard)">
+                    {demoPolicies.map((p) => {
+                      const prod = productByCode.get(p.productCode ?? 'CP-BASE');
+                      return (
+                        <option key={p.policyId} value={p.policyId}>
+                          {p.policyId} — {p.account?.name ?? 'Insured'} ({prod?.name ?? p.productCode ?? 'CP-BASE'})
+                        </option>
+                      );
+                    })}
+                  </optgroup>
+                  <optgroup label="Portfolio Accumulation Book ($300M Total TIV)">
+                    {portfolioPolicies.map((p) => {
+                      const prod = productByCode.get(p.productCode ?? 'CP-BASE');
+                      return (
+                        <option key={p.policyId} value={p.policyId}>
+                          {p.policyId} — {p.account?.name ?? 'Commercial Insured'} ({prod?.name ?? p.productCode ?? 'CP-BASE'})
+                        </option>
+                      );
+                    })}
+                  </optgroup>
+                </select>
+
+                <input
+                  type="text"
+                  value={policyId}
+                  onChange={(e) => setPolicyId(e.target.value)}
+                  placeholder="Custom ID"
+                  className="field-input w-28 text-xs font-mono"
+                  title="Directly enter custom or edge-case policy ID"
+                />
+              </div>
+
+              {/* Selected Policy Context & Peril Gate Explanation */}
+              {currentPolicy && (
+                <div
+                  className="rounded p-3 space-y-2 text-xs"
+                  style={{
+                    backgroundColor: 'var(--surface-raised)',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-[#1A1A18]">
+                      {currentPolicy.account?.name ?? 'Commercial Insured'} ({currentPolicy.policyId})
+                    </span>
+                    <span className="badge badge-neutral font-mono text-[10px]">
+                      {currentPolicy.productCode ?? 'CP-BASE'}
+                    </span>
+                  </div>
+
+                  <div className="text-[#4A4A45]">
+                    <span className="text-[#7A7A74]">Product: </span>
+                    <span className="font-medium text-[#1A1A18]">{currentProduct?.name ?? 'Commercial Property (Base All-Risk)'}</span>
+                  </div>
+
+                  <div
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] p-2.5 rounded bg-white"
+                    style={{ border: '1px solid var(--border)' }}
+                  >
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-[#7A7A74] tracking-wider block">
+                        Monitored Perils
+                      </span>
+                      <span className="font-medium text-[#1A1A18] capitalize">
+                        {currentProduct?.monitoredHazards ? currentProduct.monitoredHazards.join(', ') : 'All 8 Perils'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-[#7A7A74] tracking-wider block">
+                        Deductible Terms
+                      </span>
+                      <span className="font-medium text-[#1A1A18] tabular-nums">
+                        {currentProduct?.deductible
+                          ? currentProduct.deductible.type === 'flat'
+                            ? `$${currentProduct.deductible.value.toLocaleString()} flat`
+                            : `${(currentProduct.deductible.value * 100).toFixed(0)}% location TIV`
+                          : 'Standard terms'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Product Gating Explanation */}
+                  {activeScenarioMeta.supportsHazard && currentProduct && (
+                    (() => {
+                      const monitorsPeril = currentProduct.monitoredHazards?.includes(selectedHazard);
+                      return monitorsPeril ? (
+                        <div
+                          className="text-[11px] rounded p-2 flex items-start gap-2"
+                          style={{
+                            backgroundColor: 'var(--green-subtle)',
+                            border: '1px solid var(--green-border)',
+                            color: 'var(--green-text)',
+                          }}
+                        >
+                          <span className="font-semibold">Monitored Peril:</span>
+                          <span>This product covers <strong>{selectedHazard}</strong>. Sentinel drift rules will score this signal and generate an Underwriter activity.</span>
+                        </div>
+                      ) : (
+                        <div
+                          className="text-[11px] rounded p-2 space-y-1"
+                          style={{
+                            backgroundColor: 'var(--risk-med-bg)',
+                            border: '1px solid var(--risk-med-border)',
+                            color: 'var(--risk-med-text)',
+                          }}
+                        >
+                          <div className="font-semibold">Product Gate Suppressed:</div>
+                          <p>
+                            Policy product (<strong>{currentProduct.name}</strong>) does <em>not</em> cover <strong>{selectedHazard}</strong>.
+                            Guidewire PolicyCenter product-model rules suppress this signal without alerting underwriters.
+                          </p>
+                        </div>
+                      );
+                    })()
+                  )}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => handleRun()}
+              disabled={running}
+              className="btn btn-primary w-full justify-center text-xs mt-2"
+            >
+              {running ? 'Ingesting & Scoring Signal...' : 'Run Scenario'}
+            </button>
           </div>
+
+          {/* Results Display */}
+          {lastResult && (
+            <div className="pt-3 border-t space-y-3" style={{ borderColor: 'var(--border)' }}>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#1A1A18]">Execution Receipt</span>
+                {lastResult.event && (
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/events/${lastResult.event?.eventId}`)}
+                    className="text-xs text-[#2D6A4F] font-medium hover:underline cursor-pointer"
+                  >
+                    View Event {lastResult.event.eventId} &rarr;
+                  </button>
+                )}
+              </div>
+
+              <div
+                className="p-3 rounded text-xs font-mono space-y-1"
+                style={{
+                  backgroundColor: 'var(--surface-raised)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                {lastResult.steps.map((st, i) => (
+                  <div key={i} className="flex items-baseline gap-2">
+                    <span className="text-[#A8A8A0] text-[10px] tabular-nums">{i + 1}.</span>
+                    <span>{st}</span>
+                  </div>
+                ))}
+              </div>
+
+              {lastResult.event && (
+                <div
+                  className="p-3 rounded bg-white space-y-1.5 text-xs"
+                  style={{ border: '1px solid var(--border)' }}
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#7A7A74]">Result Severity</span>
+                    <SeverityChip severity={lastResult.event.severity} />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#7A7A74]">Materiality Score</span>
+                    <span className="font-semibold text-[#1A1A18] tabular-nums">{lastResult.event.score} points</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#7A7A74]">Portfolio Status</span>
+                    <span className={`font-semibold ${lastResult.event.portfolioBreach ? 'text-[#B42318]' : 'text-[#2D6A4F]'}`}>
+                      {lastResult.event.portfolioBreach ? 'Breach Triggered' : 'Within Appetite'}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </section>
       </div>
     </div>

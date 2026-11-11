@@ -8,8 +8,7 @@ const USERS = [
     name: 'Priya Sharma',
     role: 'Underwriter',
     initials: 'PS',
-    description: 'Reviews standard commercial property policies. Manages daily drift events and policy decisions.',
-    bg: 'bg-indigo-600',
+    description: 'Reviews standard commercial property drift events. Manages daily review queue and policy decisions.',
   },
   {
     id: 'USR-002',
@@ -17,31 +16,27 @@ const USERS = [
     role: 'Senior Underwriter',
     initials: 'MW',
     description: 'Handles escalated high-severity events, treaty referrals, and senior-flagged appetite breaches.',
-    bg: 'bg-blue-600',
   },
   {
     id: 'USR-003',
-    name: 'Admin User',
+    name: 'Admin',
     role: 'Administrator',
     initials: 'AU',
-    description: 'Full system access — audit trail, rules catalog, portfolio config, and simulator controls.',
-    bg: 'bg-slate-600',
+    description: 'Full access — audit trail, rules catalogue, portfolio configuration, and simulator controls.',
   },
   {
     id: 'USR-004',
     name: 'Aisha Patel',
     role: 'Underwriter',
     initials: 'AP',
-    description: 'Specialises in South-East flood zone exposure reviews. Monitors portfolio concentration.',
-    bg: 'bg-emerald-600',
+    description: 'Specialises in South-East flood zone exposure reviews and portfolio concentration monitoring.',
   },
   {
     id: 'USR-005',
     name: 'Devon Torres',
     role: 'Underwriter',
     initials: 'DT',
-    description: 'Manages new location discovery reviews and TIV increase validations across regions.',
-    bg: 'bg-amber-600',
+    description: 'Manages new location discovery reviews and TIV increase validations across all regions.',
   },
 ];
 
@@ -57,82 +52,203 @@ export function Login(): React.ReactElement {
     setTimeout(() => {
       setUserId(selected);
       navigate('/desktop');
-    }, 300);
+    }, 280);
   };
 
   const selectedUser = USERS.find((u) => u.id === selected);
 
   return (
-    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-slate-800 border border-slate-700 rounded-lg p-6 sm:p-8 space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-1.5">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded bg-blue-600 text-white font-bold text-sm mb-2">
-            ED
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#0F0F0D',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '1.5rem',
+    }}>
+      <div style={{ width: '100%', maxWidth: '480px' }}>
+        {/* Brand */}
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '36px',
+            height: '36px',
+            borderRadius: '5px',
+            backgroundColor: '#2D6A4F',
+            marginBottom: '0.875rem',
+          }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M5 20L12 4L19 20" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8 14H16" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </div>
-          <h1 className="text-xl font-semibold text-white tracking-tight">
+          <h1 style={{
+            fontSize: '1.0625rem',
+            fontWeight: 600,
+            color: '#E8E6E0',
+            letterSpacing: '-0.01em',
+            marginBottom: '0.25rem',
+          }}>
             Exposure Drift Sentinel
           </h1>
-          <p className="text-slate-400 text-xs">
-            Select an underwriter persona to enter the Guidewire PolicyCenter decision-support workspace.
+          <p style={{ fontSize: '0.8125rem', color: '#6A6A64' }}>
+            Select an underwriter profile to continue.
           </p>
         </div>
 
-        {/* Role Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {USERS.map((user) => {
+        {/* Profile list */}
+        <div style={{
+          backgroundColor: '#1A1A17',
+          border: '1px solid #2A2A27',
+          borderRadius: '8px',
+          overflow: 'hidden',
+        }}>
+          {USERS.map((user, idx) => {
             const isSelected = selected === user.id;
+            const isLast = idx === USERS.length - 1;
 
             return (
               <button
                 key={user.id}
                 type="button"
-                className={`p-3.5 rounded border text-left transition-colors cursor-pointer ${
-                  isSelected
-                    ? 'border-blue-500 bg-blue-950/40 text-white'
-                    : 'border-slate-700 bg-slate-900/60 text-slate-300 hover:border-slate-600'
-                }`}
                 onClick={() => setSelected(user.id)}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.875rem',
+                  padding: '0.875rem 1rem',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  border: 'none',
+                  borderBottom: isLast ? 'none' : '1px solid #242421',
+                  backgroundColor: isSelected ? '#1F2920' : 'transparent',
+                  transition: 'background-color 100ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#1E1E1B';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent';
+                }}
               >
-                <div className="flex items-center gap-2.5 mb-1.5">
-                  <div className={`w-7 h-7 rounded ${user.bg} flex items-center justify-center text-white text-xs font-semibold flex-shrink-0`}>
-                    {user.initials}
+                {/* Avatar */}
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  backgroundColor: isSelected ? '#2D6A4F' : '#2E2E2B',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: isSelected ? 'white' : '#8A8880',
+                  fontSize: '0.6875rem',
+                  fontWeight: 700,
+                  flexShrink: 0,
+                  marginTop: '0.0625rem',
+                  letterSpacing: '0.03em',
+                  transition: 'background-color 150ms ease, color 150ms ease',
+                }}>
+                  {user.initials}
+                </div>
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.1875rem' }}>
+                    <span style={{
+                      fontSize: '0.875rem',
+                      fontWeight: isSelected ? 600 : 400,
+                      color: isSelected ? '#E8E6E0' : '#C0BEB8',
+                      transition: 'color 100ms ease, font-weight 100ms ease',
+                    }}>
+                      {user.name}
+                    </span>
+                    <span style={{
+                      fontSize: '0.6875rem',
+                      color: isSelected ? '#6BA882' : '#5A5A54',
+                      fontWeight: 500,
+                    }}>
+                      {user.role}
+                    </span>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-white text-xs font-semibold truncate">{user.name}</div>
-                    <div className="text-slate-400 text-[11px]">{user.role}</div>
-                  </div>
+                  <p style={{
+                    fontSize: '0.75rem',
+                    color: '#6A6A64',
+                    lineHeight: 1.5,
+                    margin: 0,
+                  }}>
+                    {user.description}
+                  </p>
+                </div>
+
+                {/* Selection indicator */}
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  borderRadius: '50%',
+                  border: `1.5px solid ${isSelected ? '#2D6A4F' : '#3A3A37'}`,
+                  backgroundColor: isSelected ? '#2D6A4F' : 'transparent',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  marginTop: '0.3125rem',
+                  transition: 'all 150ms ease',
+                }}>
                   {isSelected && (
-                    <span className="text-blue-400 text-xs font-semibold">Active</span>
+                    <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                      <path d="M1.5 4L3.5 6L6.5 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   )}
                 </div>
-                <p className="text-slate-400 text-xs leading-relaxed">
-                  {user.description}
-                </p>
               </button>
             );
           })}
         </div>
 
-        {/* Login Button */}
-        <button
-          type="button"
-          className="w-full py-2.5 px-4 rounded font-semibold text-xs text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition-colors cursor-pointer"
-          disabled={!selected || loading}
-          onClick={handleLogin}
-        >
-          {loading ? (
-            'Opening workspace...'
-          ) : selected ? (
-            `Continue as ${selectedUser?.name}`
-          ) : (
-            'Select a profile to continue'
-          )}
-        </button>
+        {/* Continue button */}
+        <div style={{ marginTop: '1rem' }}>
+          <button
+            type="button"
+            disabled={!selected || loading}
+            onClick={handleLogin}
+            style={{
+              width: '100%',
+              padding: '0.6875rem',
+              borderRadius: '5px',
+              border: 'none',
+              cursor: selected && !loading ? 'pointer' : 'not-allowed',
+              fontFamily: 'var(--font-sans)',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              color: 'white',
+              backgroundColor: selected && !loading ? '#2D6A4F' : '#1E2E26',
+              transition: 'background-color 150ms ease',
+              opacity: !selected ? 0.5 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (selected && !loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#1E4D38';
+            }}
+            onMouseLeave={(e) => {
+              if (selected && !loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#2D6A4F';
+            }}
+          >
+            {loading
+              ? 'Opening workspace…'
+              : selected
+              ? `Continue as ${selectedUser?.name}`
+              : 'Select a profile to continue'}
+          </button>
+        </div>
 
-        {/* Footer note */}
-        <p className="text-center text-slate-500 text-xs pt-1">
-          Synthetic demo environment, no external credentials required.
+        <p style={{
+          marginTop: '1rem',
+          textAlign: 'center',
+          fontSize: '0.75rem',
+          color: '#4A4A45',
+        }}>
+          Synthetic demo environment. No external credentials required.
         </p>
       </div>
     </div>

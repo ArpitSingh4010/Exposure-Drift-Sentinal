@@ -3,11 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { usePortfolio, usePortfolioSummary } from '@/hooks/useApi';
 
 function money(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0,
-  }).format(value);
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
 }
 
 const HAZARD_TABS = [
@@ -21,6 +17,31 @@ const HAZARD_TABS = [
   { id: 'severe_storm', label: 'Severe Storm',         cap: '25%' },
 ];
 
+function ProgressBar({ share, cap, breach }: { share: number; cap: number; breach: boolean }): React.ReactElement {
+  const displayCap = cap * 1.3;
+  const fillPct = Math.min((share / displayCap) * 100, 100);
+  const markerPct = (cap / displayCap) * 100;
+
+  return (
+    <div style={{ position: 'relative', height: '5px', backgroundColor: 'var(--surface-active)', borderRadius: '2px', overflow: 'hidden' }}>
+      <div style={{
+        position: 'absolute', top: 0, left: 0, bottom: 0,
+        width: `${fillPct}%`,
+        backgroundColor: breach ? 'var(--risk-high-fill)' : 'var(--green-primary)',
+        borderRadius: '2px',
+        transition: 'width 300ms ease',
+      }} />
+      <div style={{
+        position: 'absolute', top: 0, bottom: 0,
+        left: `${markerPct}%`,
+        width: '1.5px',
+        backgroundColor: 'var(--text-secondary)',
+        zIndex: 1,
+      }} title={`Appetite cap: ${(cap * 100).toFixed(0)}%`} />
+    </div>
+  );
+}
+
 export function Portfolio(): React.ReactElement {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeHazard = searchParams.get('hazard') ?? 'flood';
@@ -33,22 +54,32 @@ export function Portfolio(): React.ReactElement {
 
   const query = usePortfolio(activeHazard);
   const summaryQuery = usePortfolioSummary();
-
   const activeTabMeta = HAZARD_TABS.find((h) => h.id === activeHazard) ?? HAZARD_TABS[0]!;
 
   if (query.isLoading) {
     return (
-      <div className="p-8 flex flex-col items-center justify-center min-h-[300px] text-slate-500 space-y-2">
-        <div className="w-5 h-5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs font-medium">Loading portfolio aggregation for {activeTabMeta.label}...</p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: '300px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+          <div className="spinner" />
+          <span style={{ fontSize: '0.8125rem', color: 'var(--text-muted)' }}>
+            Loading portfolio exposure for {activeTabMeta.label}…
+          </span>
+        </div>
       </div>
     );
   }
 
   if (query.isError || !query.data) {
     return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded p-4 text-xs font-medium">
+      <div style={{ padding: '1.5rem' }}>
+        <div style={{
+          padding: '0.875rem 1rem',
+          backgroundColor: 'var(--risk-high-bg)',
+          border: '1px solid var(--risk-high-border)',
+          borderRadius: '5px',
+          fontSize: '0.8125rem',
+          color: 'var(--risk-high-text)',
+        }}>
           Unable to compute portfolio exposure for {activeTabMeta.label}.
         </div>
       </div>
@@ -56,249 +87,354 @@ export function Portfolio(): React.ReactElement {
   }
 
   const { totalPortfolioTiv, regions } = query.data;
-  const breached = regions.filter((region) => region.breach);
+  const breached = regions.filter((r) => r.breach);
   const summaries = summaryQuery.data ?? [];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
-            Multi-Hazard Portfolio Appetite & Concentration
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real-time concentration monitoring across 8 peril types and 4 commercial property regions.
-          </p>
-        </div>
-
-        <div className="text-right">
-          <div className="text-xs font-medium text-slate-500">Total portfolio TIV</div>
-          <div className="text-xl font-semibold text-slate-900 mt-0.5">
-            {money(totalPortfolioTiv)}
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Page header */}
+      <div style={{
+        padding: '1.125rem 1.5rem 0',
+        backgroundColor: 'var(--surface)',
+        borderBottom: '1px solid var(--border)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
+          <div>
+            <h1 className="page-title">Portfolio Concentration</h1>
+            <p className="page-desc">
+              Regional appetite monitoring across 8 peril types. Total portfolio TIV:{' '}
+              <strong style={{ color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                {money(totalPortfolioTiv)}
+              </strong>
+            </p>
           </div>
+          {breached.length > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.3rem 0.6rem',
+              backgroundColor: 'var(--risk-high-bg)',
+              border: '1px solid var(--risk-high-border)',
+              borderRadius: '4px',
+              fontSize: '0.75rem',
+              color: 'var(--risk-high-text)',
+              fontWeight: 600,
+            }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--risk-high-fill)' }} />
+              {breached.length} appetite breach{breached.length > 1 ? 'es' : ''}
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* 8 Hazard Peril Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto pb-1 border-b border-slate-200">
-        {HAZARD_TABS.map((tab) => {
-          const isActive = tab.id === activeHazard;
-          return (
+        {/* Peril tabs */}
+        <div className="tab-list" style={{ padding: 0, marginLeft: 0 }}>
+          {HAZARD_TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setHazardTab(tab.id)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-t border-b-2 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                isActive
-                  ? 'border-blue-600 text-blue-700 bg-blue-50/50 font-semibold'
-                  : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
+              className={`tab-item${tab.id === activeHazard ? ' active' : ''}`}
+              style={{ cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'var(--font-sans)' }}
             >
-              <span>{tab.label}</span>
-              <span className={`text-[10px] px-1 rounded ${isActive ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'}`}>
-                {tab.cap} cap
+              {tab.label}
+              <span style={{
+                marginLeft: '0.3rem',
+                fontSize: '0.625rem',
+                color: tab.id === activeHazard ? 'var(--green-primary)' : 'var(--text-faint)',
+                fontWeight: 500,
+              }}>
+                {tab.cap}
               </span>
             </button>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
-      {/* Breach Notification Banner */}
-      {breached.length > 0 && (
-        <div className="rounded border border-red-200 bg-red-50 p-4 text-xs text-red-800 space-y-1">
-          <div className="font-semibold">Risk Appetite Breach ({activeTabMeta.label}):</div>
-          <div>
-            <strong>{breached.map((r) => r.region).join(', ')}</strong> has exceeded the {activeTabMeta.cap} appetite cap for {activeTabMeta.label}. Further policy endorsements in this territory require senior underwriting approval.
+      {/* Content */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Breach banner */}
+        {breached.length > 0 && (
+          <div style={{
+            padding: '0.75rem 1rem',
+            backgroundColor: 'var(--risk-high-bg)',
+            border: '1px solid var(--risk-high-border)',
+            borderRadius: '5px',
+            fontSize: '0.8125rem',
+            color: 'var(--risk-high-text)',
+          }}>
+            <strong>Appetite breach — {activeTabMeta.label}:</strong>{' '}
+            {breached.map((r) => r.region).join(', ')} {breached.length === 1 ? 'has' : 'have'} exceeded the {activeTabMeta.cap} cap.
+            Further endorsements in this territory require senior underwriting approval.
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Regional Exposure Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {regions.map((region) => {
-          const sharePct = (region.share * 100).toFixed(2);
-          const capPct = (region.cap * 100).toFixed(0);
-          const headroomPct = (region.headroom * 100).toFixed(2);
-          const maxDisplayCap = region.cap * 1.25;
-
-          return (
-            <div
-              key={region.region}
-              className={`eds-card p-4 space-y-3 ${
-                region.breach ? 'border-red-300 bg-red-50/20' : ''
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-sm text-slate-900">
-                    {region.region}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    High-risk TIV: {money(region.floodTiv)}
-                  </p>
-                </div>
-                <span className={`chip ${region.breach ? 'chip-high' : 'chip-open'}`}>
-                  {region.breach ? 'Breach' : 'In appetite'}
-                </span>
+        {/* Regional exposure — compact table layout */}
+        <div style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: '6px',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            padding: '0.75rem 1.25rem',
+            borderBottom: '1px solid var(--border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}>
+            <div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                Regional Concentration — {activeTabMeta.label}
               </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between items-baseline text-xs">
-                  <span className={`text-lg font-semibold ${region.breach ? 'text-red-700' : 'text-slate-900'}`}>
-                    {sharePct}%
-                  </span>
-                  <span className="text-slate-500 text-xs">
-                    Cap: {capPct}%
-                  </span>
-                </div>
-
-                <div className="h-2 bg-slate-100 rounded-full relative overflow-hidden border border-slate-200">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      region.breach ? 'bg-red-600' : 'bg-blue-600'
-                    }`}
-                    style={{ width: `${Math.min((region.share / maxDisplayCap) * 100, 100)}%` }}
-                  />
-                  {/* Cap marker */}
-                  <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-slate-800 z-10"
-                    style={{ left: `${(region.cap / maxDisplayCap) * 100}%` }}
-                    title={`Appetite Cap: ${capPct}%`}
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 text-xs flex justify-between text-slate-600">
-                <span>Headroom:</span>
-                <span className={`font-semibold ${region.breach ? 'text-red-700' : 'text-slate-800'}`}>
-                  {region.headroom >= 0 ? `+${headroomPct}%` : `${Math.abs(Number(headroomPct))}% over`}
-                </span>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+                Share of high-risk TIV per region against the {activeTabMeta.cap} appetite cap.
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      {/* Cross-Peril National Summary Table */}
-      <section className="eds-card overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-50">
-          <h2 className="font-semibold text-sm text-slate-900">
-            Multi-Hazard Concentration Overview (All 8 Perils)
-          </h2>
-          <p className="text-xs text-slate-500">
-            Highest regional concentration share versus appetite cap for each peril in the national portfolio.
-          </p>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="eds-table">
+          <table className="data-table">
             <thead>
               <tr>
-                <th>Peril</th>
-                <th>Worst region</th>
-                <th>Regional concentration</th>
-                <th>Appetite cap</th>
-                <th>Headroom</th>
-                <th>Status</th>
+                <th>Region</th>
+                <th style={{ textAlign: 'right' }}>High-risk TIV</th>
+                <th style={{ textAlign: 'right' }}>Concentration</th>
+                <th style={{ width: '160px' }}>vs Cap</th>
+                <th style={{ textAlign: 'right' }}>Headroom</th>
+                <th style={{ textAlign: 'center' }}>Status</th>
               </tr>
             </thead>
             <tbody>
-              {summaries.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-6 text-xs text-slate-500">
-                    Loading cross-hazard summary...
-                  </td>
-                </tr>
-              ) : (
-                summaries.map((s) => (
-                  <tr
-                    key={s.hazard}
-                    onClick={() => setHazardTab(s.hazard)}
-                    className={s.hazard === activeHazard ? 'bg-blue-50/40' : ''}
-                  >
+              {regions.map((region) => {
+                const sharePct = (region.share * 100).toFixed(2);
+                const capPct = (region.cap * 100).toFixed(0);
+                const headroomPct = (region.headroom * 100).toFixed(2);
+                const isOver = region.headroom < 0;
+
+                return (
+                  <tr key={region.region}>
                     <td>
-                      <span className="font-medium text-slate-900">
-                        {s.label}
+                      <span style={{ fontWeight: 500, color: 'var(--text-primary)', fontSize: '0.875rem' }}>
+                        {region.region}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <span style={{ fontVariantNumeric: 'tabular-nums', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
+                        {money(region.floodTiv)}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <span style={{
+                        fontSize: '0.9375rem',
+                        fontWeight: 600,
+                        fontVariantNumeric: 'tabular-nums',
+                        color: region.breach ? 'var(--risk-high-text)' : 'var(--text-primary)',
+                      }}>
+                        {sharePct}%
                       </span>
                     </td>
                     <td>
-                      <span className="text-xs text-slate-700">
-                        {s.worstRegion}
+                      <ProgressBar share={region.share} cap={region.cap} breach={region.breach} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.25rem', fontSize: '0.6rem', color: 'var(--text-faint)' }}>
+                        <span>0%</span>
+                        <span>Cap {capPct}%</span>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <span style={{
+                        fontSize: '0.8125rem',
+                        fontVariantNumeric: 'tabular-nums',
+                        fontWeight: 500,
+                        color: isOver ? 'var(--risk-high-text)' : 'var(--risk-low-text)',
+                      }}>
+                        {isOver ? `−${Math.abs(Number(headroomPct)).toFixed(2)}%` : `+${headroomPct}%`}
                       </span>
                     </td>
-                    <td>
-                      <span className={`font-semibold ${s.breach ? 'text-red-700' : 'text-slate-900'}`}>
-                        {(s.share * 100).toFixed(2)}%
-                      </span>
-                    </td>
-                    <td>
-                      <span className="text-xs text-slate-600">
-                        {(s.cap * 100).toFixed(0)}%
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`font-medium ${s.breach ? 'text-red-700' : 'text-slate-700'}`}>
-                        {s.headroom >= 0 ? `+${(s.headroom * 100).toFixed(2)}%` : `${Math.abs(s.headroom * 100).toFixed(2)}% over`}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`chip ${s.breach ? 'chip-high' : 'chip-open'}`}>
-                        {s.breach ? 'Breach' : 'In appetite'}
+                    <td style={{ textAlign: 'center' }}>
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        padding: '0.1875rem 0.4375rem',
+                        borderRadius: '3px',
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        letterSpacing: '0.02em',
+                        backgroundColor: region.breach ? 'var(--risk-high-bg)' : 'var(--risk-low-bg)',
+                        color: region.breach ? 'var(--risk-high-text)' : 'var(--risk-low-text)',
+                        border: `1px solid ${region.breach ? 'var(--risk-high-border)' : 'var(--risk-low-border)'}`,
+                      }}>
+                        {region.breach ? 'Breach' : 'OK'}
                       </span>
                     </td>
                   </tr>
-                ))
-              )}
+                );
+              })}
             </tbody>
           </table>
         </div>
-      </section>
 
-      {/* Contributing Policies */}
-      <section className="eds-card overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-50">
-          <h2 className="font-semibold text-sm text-slate-900">
-            Contributing Exposure Schedules ({activeTabMeta.label})
-          </h2>
-          <p className="text-xs text-slate-500">
-            Top commercial property policies by high-risk TIV in each territory for {activeTabMeta.label}.
-          </p>
-        </div>
+        {/* Contributing policies per region */}
+        <div style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: '6px',
+          overflow: 'hidden',
+        }}>
+          <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
+            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+              Contributing Policies — {activeTabMeta.label}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+              Commercial property policies with high-risk exposure in this peril category.
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-          {regions.map((region) => (
-            <div key={region.region} className="p-5 space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <span className="font-semibold text-xs text-slate-800">
-                  {region.region}
-                </span>
-                <span className="text-[11px] text-slate-400">
-                  {region.contributingPolicies.length} policies
-                </span>
-              </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          }}>
+            {regions.map((region, idx) => (
+              <div
+                key={region.region}
+                style={{
+                  padding: '1rem 1.25rem',
+                  borderRight: idx < regions.length - 1 ? '1px solid var(--border)' : 'none',
+                  borderBottom: idx < 2 ? '1px solid var(--border)' : 'none',
+                }}
+              >
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '0.625rem',
+                }}>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                    {region.region}
+                  </span>
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                    {region.contributingPolicies.length} pols
+                  </span>
+                </div>
 
-              <div className="space-y-1.5">
                 {region.contributingPolicies.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic py-1">
-                    No high-hazard locations mapped in this territory for {activeTabMeta.label}.
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-faint)', fontStyle: 'italic' }}>
+                    No high-risk exposure in this territory.
                   </p>
                 ) : (
-                  region.contributingPolicies.map((p) => (
-                    <div
-                      key={p.policyId}
-                      className="flex items-center justify-between text-xs py-1"
-                    >
-                      <span className="font-mono text-slate-700">{p.policyId}</span>
-                      <span className="font-semibold text-slate-900">{money(p.tiv)}</span>
-                    </div>
-                  ))
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3125rem' }}>
+                    {region.contributingPolicies.slice(0, 6).map((p) => (
+                      <div key={p.policyId} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.75rem' }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>
+                          {p.policyId}
+                        </span>
+                        <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500, color: 'var(--text-primary)' }}>
+                          {money(p.tiv)}
+                        </span>
+                      </div>
+                    ))}
+                    {region.contributingPolicies.length > 6 && (
+                      <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)' }}>
+                        +{region.contributingPolicies.length - 6} more
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </section>
+
+        {/* Cross-hazard summary table */}
+        {summaries.length > 0 && (
+          <div style={{
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '6px',
+            overflow: 'hidden',
+          }}>
+            <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                All-Peril Concentration Summary
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.125rem' }}>
+                Peak regional concentration versus appetite cap across all 8 monitored perils.
+              </div>
+            </div>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Peril</th>
+                  <th>Worst region</th>
+                  <th style={{ textAlign: 'right' }}>Concentration</th>
+                  <th style={{ textAlign: 'right' }}>Cap</th>
+                  <th style={{ textAlign: 'right' }}>Headroom</th>
+                  <th style={{ textAlign: 'center' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {summaries.map((s) => {
+                  const isActive = s.hazard === activeHazard;
+                  const isOver = s.headroom < 0;
+                  return (
+                    <tr
+                      key={s.hazard}
+                      className="row-clickable"
+                      onClick={() => setHazardTab(s.hazard)}
+                      style={{ backgroundColor: isActive ? 'var(--surface-subtle)' : undefined }}
+                    >
+                      <td>
+                        <span style={{ fontWeight: isActive ? 600 : 400, color: 'var(--text-primary)' }}>
+                          {s.label}
+                        </span>
+                      </td>
+                      <td style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>{s.worstRegion}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{
+                          fontVariantNumeric: 'tabular-nums',
+                          fontWeight: 600,
+                          color: s.breach ? 'var(--risk-high-text)' : 'var(--text-primary)',
+                        }}>
+                          {(s.share * 100).toFixed(2)}%
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--text-secondary)' }}>
+                          {(s.cap * 100).toFixed(0)}%
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{
+                          fontVariantNumeric: 'tabular-nums',
+                          fontWeight: 500,
+                          color: isOver ? 'var(--risk-high-text)' : 'var(--risk-low-text)',
+                        }}>
+                          {isOver ? `−${(Math.abs(s.headroom) * 100).toFixed(2)}%` : `+${(s.headroom * 100).toFixed(2)}%`}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '0.125rem 0.4rem',
+                          borderRadius: '3px',
+                          fontSize: '0.6875rem',
+                          fontWeight: 600,
+                          letterSpacing: '0.02em',
+                          backgroundColor: s.breach ? 'var(--risk-high-bg)' : 'var(--risk-low-bg)',
+                          color: s.breach ? 'var(--risk-high-text)' : 'var(--risk-low-text)',
+                          border: `1px solid ${s.breach ? 'var(--risk-high-border)' : 'var(--risk-low-border)'}`,
+                        }}>
+                          {s.breach ? 'Breach' : 'OK'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

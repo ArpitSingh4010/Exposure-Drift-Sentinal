@@ -21,89 +21,144 @@ export function DecisionModal({
 
   const actionDetails =
     action === 'ACCEPT'
-      ? { title: 'Accept Exposure Change', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+      ? {
+          title: 'Accept Exposure Change',
+          desc: 'Commit candidate state as the new bound baseline snapshot for this policy.',
+          badgeClass: 'badge-low',
+          badgeText: 'Accept Risk',
+        }
       : action === 'REQUEST_INFO'
-        ? { title: 'Request Underwriting Information', badge: 'bg-amber-50 text-amber-700 border-amber-200' }
-        : { title: 'Dismiss Drift Event', badge: 'bg-slate-100 text-slate-700 border-slate-200' };
+        ? {
+            title: 'Request Underwriting Information',
+            desc: 'Hold review and request engineering or valuation documentation from broker.',
+            badgeClass: 'badge-medium',
+            badgeText: 'Info Request',
+          }
+        : {
+            title: 'Dismiss Drift Event',
+            desc: 'Close this drift alert as immaterial, duplicate, or inaccurate.',
+            badgeClass: 'badge-high',
+            badgeText: 'Dismiss Event',
+          };
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-slate-900/50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(26, 26, 24, 0.45)', backdropFilter: 'blur(2px)' }}
       role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
     >
       <section
-        className="bg-white w-full max-w-lg rounded-lg shadow-lg border border-slate-200 overflow-hidden"
+        className="w-full max-w-lg overflow-hidden bg-white"
+        style={{
+          border: '1px solid var(--border)',
+          borderRadius: '6px',
+          boxShadow: 'var(--shadow-modal)',
+        }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="decision-title"
       >
-        <div className="p-5 border-b border-slate-200 bg-slate-50 flex items-start justify-between gap-4">
+        {/* Header */}
+        <div
+          className="px-5 py-4 flex items-start justify-between gap-4"
+          style={{
+            backgroundColor: 'var(--surface-raised)',
+            borderBottom: '1px solid var(--border)',
+          }}
+        >
           <div>
-            <div className="flex items-center gap-2">
-              <span className={`text-[11px] font-medium px-2 py-0.5 rounded border ${actionDetails.badge}`}>
-                {action.replace(/_/g, ' ')}
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`badge ${actionDetails.badgeClass}`}>
+                {actionDetails.badgeText}
               </span>
             </div>
-            <h2 id="decision-title" className="font-semibold text-base text-slate-900 mt-1">
+            <h2 id="decision-title" className="text-sm font-semibold tracking-tight text-[#1A1A18]">
               {actionDetails.title}
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Enter an underwriting rationale note before proceeding.
+            <p className="text-xs text-[#7A7A74] mt-0.5 leading-normal">
+              {actionDetails.desc}
             </p>
           </div>
           <button
             type="button"
             onClick={onCancel}
-            className="w-7 h-7 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+            className="text-[#7A7A74] hover:text-[#1A1A18] p-1 rounded transition-colors"
             aria-label="Close modal"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
+        {/* Form Body */}
         <div className="p-5 space-y-4">
           {action === 'DISMISS' && (
-            <label className="block text-xs font-medium text-slate-700">
-              Reason
+            <div>
+              <label className="block text-xs font-medium text-[#4A4A45] mb-1.5" htmlFor="dismiss-reason">
+                Reason
+              </label>
               <select
+                id="dismiss-reason"
                 value={reasonCode}
                 onChange={(event) => setReasonCode(event.target.value)}
-                className="mt-1 w-full border border-slate-300 rounded px-3 py-2 bg-white text-xs text-slate-800 focus:border-blue-600 outline-none"
+                className="field-select w-full"
+                aria-label="Reason"
               >
-                <option value="">Select a reason code</option>
+                <option value="">Select a reason code...</option>
                 <option value="not_material">Not material to risk</option>
                 <option value="wrong_match">Wrong entity match</option>
                 <option value="already_known">Already known / previously endorsed</option>
                 <option value="other">Other reason</option>
               </select>
-            </label>
+            </div>
           )}
 
-          <label className="block text-xs font-medium text-slate-700">
-            Note
+          <div>
+            <label className="block text-xs font-medium text-[#4A4A45] mb-1.5" htmlFor="decision-note">
+              Note
+            </label>
             <textarea
+              id="decision-note"
               value={note}
               onChange={(event) => setNote(event.target.value)}
               rows={4}
-              className="mt-1 w-full border border-slate-300 rounded p-2.5 text-xs text-slate-800 focus:border-blue-600 outline-none resize-none"
-              placeholder="State the decision rationale..."
+              aria-label="Note"
+              className="field-input w-full resize-none font-sans"
+              placeholder="State the underwriting rationale (recorded in immutable audit log)..."
             />
-          </label>
+          </div>
 
           {error && (
-            <div className="p-2.5 rounded bg-red-50 border border-red-200 text-xs text-red-700 font-medium">
+            <div
+              className="p-3 text-xs leading-relaxed"
+              style={{
+                backgroundColor: 'var(--risk-high-bg)',
+                color: 'var(--risk-high-text)',
+                border: '1px solid var(--risk-high-border)',
+                borderRadius: '4px',
+              }}
+            >
               {error}
             </div>
           )}
         </div>
 
-        <div className="px-5 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2.5">
+        {/* Footer Actions */}
+        <div
+          className="px-5 py-3.5 flex items-center justify-end gap-2.5"
+          style={{
+            backgroundColor: 'var(--surface-raised)',
+            borderTop: '1px solid var(--border)',
+          }}
+        >
           <button
             type="button"
             onClick={onCancel}
-            className="px-3.5 py-1.5 text-xs font-medium border border-slate-300 rounded bg-white hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer"
+            className="btn btn-secondary text-xs"
           >
             Cancel
           </button>
@@ -117,9 +172,9 @@ export function DecisionModal({
                 ...(reasonCode ? { reasonCode } : {}),
               })
             }
-            className="btn-primary disabled:opacity-50"
+            className={`btn ${action === 'DISMISS' ? 'btn-danger' : 'btn-primary'} text-xs disabled:opacity-50`}
           >
-            {busy ? 'Saving...' : 'Confirm'}
+            {busy ? 'Recording...' : 'Confirm'}
           </button>
         </div>
       </section>

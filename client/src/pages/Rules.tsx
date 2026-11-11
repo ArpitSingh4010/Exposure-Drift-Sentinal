@@ -5,8 +5,7 @@ interface RuleCardData {
   id: string;
   simpleTitle: string;
   technicalCode: string;
-  category: 'Property Value' | 'New Building' | 'Flood Hazard' | 'Combined Risk' | 'Company Limit';
-  categoryColor: string;
+  category: string;
   oneLineSummary: string;
   whatHappened: string;
   triggerCondition: string;
@@ -21,126 +20,124 @@ interface RuleCardData {
 const EASY_RULES: RuleCardData[] = [
   {
     id: 'R1_TIV_INCREASE',
-    simpleTitle: 'Property Value Jump',
+    simpleTitle: 'Total Insured Value Drift',
     technicalCode: 'R1_TIV_INCREASE',
-    category: 'Property Value',
-    categoryColor: 'bg-blue-100 text-blue-800 border-blue-200',
-    oneLineSummary: 'The insured building or equipment became significantly more valuable than the policy states.',
-    whatHappened: 'The business bought expensive equipment or expanded, so its property is now worth way more than what they initially told the insurance company.',
-    triggerCondition: 'Value goes up by 10% to 25% (+3 points) or by 25%+ (+5 points). Changes under 10% are ignored as normal inflation.',
-    points: '+3 or +5 points',
-    severityText: 'Medium or High Alert',
-    slaTime: 'Review in 2 to 5 days',
-    whyItMatters: 'If a fire destroys the building today, the payout will be millions higher than what the company paid premiums for.',
-    realWorldStory: 'Northwind Fabrication bought new robotic laser cutters. Tax records show their property value jumped from $2.8M to $4.2M (+49%).',
-    underwriterNextStep: 'The underwriter updates the policy valuation and recalculates the premium so the customer is properly insured.',
+    category: 'Valuation',
+    oneLineSummary: 'Insured property or equipment valuation increased materially over bound baseline.',
+    whatHappened: 'Insured business expanded facilities or installed high-value machinery without an endorsement filing.',
+    triggerCondition: 'TIV increases by 10% to 25% (+3 points) or by 25%+ (+5 points). Changes under 10% are suppressed.',
+    points: '+3 or +5 pts',
+    severityText: 'Medium / High',
+    slaTime: '2 to 5 business days',
+    whyItMatters: 'If a catastrophic loss occurs, claim payout exceeds the bound premium rating basis.',
+    realWorldStory: 'Tax records indicate commercial property valuation expanded from $2.8M to $4.2M (+49%).',
+    underwriterNextStep: 'Endorse policy schedule with updated valuation and premium adjustment.',
   },
   {
     id: 'R2_NEW_LOCATION',
-    simpleTitle: 'Unreported New Building',
+    simpleTitle: 'Unscheduled Facility Discovered',
     technicalCode: 'R2_NEW_LOCATION',
-    category: 'New Building',
-    categoryColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    oneLineSummary: 'A new facility or warehouse was discovered that isn’t listed on the insurance policy.',
-    whatHappened: 'Public records (like building permits or property tax filings) reveal the company opened a new building, but forgot to tell their insurer.',
-    triggerCondition: 'Any physical building address detected that is not on the bound policy location schedule.',
-    points: '+3 points',
+    category: 'Location Schedule',
+    oneLineSummary: 'Commercial facility address detected that is not scheduled on the active policy.',
+    whatHappened: 'Municipal building filings or permit records reveal a newly operating facility under the insured entity.',
+    triggerCondition: 'Any verified physical address detected that is absent from the bound schedule.',
+    points: '+3 pts',
     severityText: 'Medium Alert',
-    slaTime: 'Review in 5 days',
-    whyItMatters: 'If an explosion or accident happens at this secret building, nobody knows what safety measures or hazards exist there.',
-    realWorldStory: 'Permit filings in Savannah, GA show the policyholder just built a 3rd commercial warehouse at 900 Simulator Facility Way ($1.4M value).',
-    underwriterNextStep: 'The underwriter inspects the building specs, confirms construction safety, and formally adds it to the policy.',
+    slaTime: '5 business days',
+    whyItMatters: 'Unvetted structures lack risk survey, construction warranties, and safety audits.',
+    realWorldStory: 'Permit filings in Savannah, GA indicate a 3rd commercial warehouse at 900 Simulator Facility Way ($1.4M TIV).',
+    underwriterNextStep: 'Inspect construction safety classification and endorse to policy location schedule.',
   },
   {
     id: 'R3_HIGH_FLOOD_ZONE',
     simpleTitle: 'Peril High-Risk Band Entry',
     technicalCode: 'R3_HIGH_FLOOD_ZONE / R3_HAZARD_BAND',
-    category: 'Flood Hazard',
-    categoryColor: 'bg-purple-100 text-purple-800 border-purple-200',
-    oneLineSummary: 'A monitored hazard for this policy product moved into a high-risk peril band.',
-    whatHappened: 'Geospatial hazard mapping updated: a location entered high-risk flood (A/AE/V), seismic (high/very_high), wildfire (high/very_high), cyclone (high/extreme), or other monitored peril bands.',
-    triggerCondition: 'Location enters a high-risk band for any hazard monitored by the policy product (+5 points per hazard).',
-    points: '+5 points per peril',
+    category: 'Hazard Re-mapping',
+    oneLineSummary: 'A location entered a high-risk peril band monitored by its specific policy product.',
+    whatHappened: 'Environmental geospatial update re-mapped facility into high-hazard flood (A/AE/V), seismic, wildfire, or cyclone band.',
+    triggerCondition: 'Location enters high-risk band for any hazard covered by the policy product (+5 points per hazard).',
+    points: '+5 pts per peril',
     severityText: 'High Alert',
-    slaTime: 'Review in 2 days',
-    whyItMatters: 'The building is now exposed to catastrophic peril severity during the next event season.',
-    realWorldStory: 'Seismic fault remapping moves a food processing facility in Los Angeles into very_high earthquake hazard, triggering underwriting review on its CP-EQ policy.',
-    underwriterNextStep: 'The underwriter verifies peril sub-limits, deductible adequacy, and mandatory physical mitigation warranties.',
+    slaTime: '2 business days',
+    whyItMatters: 'Facility is exposed to severe event severity during upcoming catastrophe season.',
+    realWorldStory: 'Seismic fault revision places food processing facility into very_high earthquake hazard, triggering review on CP-EQ policy.',
+    underwriterNextStep: 'Verify peril sub-limits, deductible adequacy, and physical mitigation requirements.',
   },
   {
     id: 'R4_FLOOD_SCORE_WORSENED',
-    simpleTitle: 'Hazard Score Jump (+2 or more)',
+    simpleTitle: 'Peril Risk Score Escalation',
     technicalCode: 'R4_FLOOD_SCORE_WORSENED / R4_HAZARD_SCORE',
-    category: 'Flood Hazard',
-    categoryColor: 'bg-amber-100 text-amber-800 border-amber-200',
-    oneLineSummary: 'Peril risk score worsened by 2 or more points on a 1-10 scale.',
-    whatHappened: 'Local environmental or engineering data worsened the peril index by >= 2 points since the policy was bound.',
+    category: 'Hazard Re-mapping',
+    oneLineSummary: 'Hazard vulnerability score worsened by 2 or more points on 1-10 index.',
+    whatHappened: 'Local terrain, coastal, or engineering data increased the peril vulnerability index by >= 2 points.',
     triggerCondition: 'Monitored hazard score increases by 2 or more points on the 1-10 index.',
-    points: '+3 points',
+    points: '+3 pts',
     severityText: 'Medium Alert',
-    slaTime: 'Review in 5 days',
-    whyItMatters: 'Peril risk has steadily crept upward without physical modifications to the structure itself.',
-    realWorldStory: 'Coastal erosion removed dune barriers, increasing the port facility’s storm surge vulnerability score from 4/10 to 7/10 (+3).',
-    underwriterNextStep: 'The underwriter requests updated engineering surveys or applies supplemental wind/surge terms.',
+    slaTime: '5 business days',
+    whyItMatters: 'Peril vulnerability has steadily accumulated without structure modifications.',
+    realWorldStory: 'Coastal erosion increased port facility storm surge vulnerability score from 4/10 to 7/10 (+3).',
+    underwriterNextStep: 'Request updated engineering survey or apply supplemental terms.',
   },
   {
     id: 'R5_COMBINED_ESCALATION',
-    simpleTitle: 'Combined Escalation: New Facility in High-Risk Peril',
+    simpleTitle: 'Compound Escalation: New Facility in High-Risk Peril',
     technicalCode: 'R5_COMBINED_ESCALATION',
-    category: 'Combined Risk',
-    categoryColor: 'bg-rose-100 text-rose-800 border-rose-200',
-    oneLineSummary: 'Both R2 and R3 occurred: an unvetted new location was discovered directly in a high-risk peril zone!',
-    whatHappened: 'The policyholder added a brand-new facility, and it sits directly inside a severe hazard zone (flood, earthquake, wildfire, etc.).',
-    triggerCondition: 'Both "New Location" (R2) AND "High-Risk Peril Band" (R3) fire on the same policy.',
-    points: 'FORCES HIGH SEVERITY',
+    category: 'Compound Risk',
+    oneLineSummary: 'Both R2 and R3 triggered: an unscheduled facility was discovered directly in a high-risk peril band.',
+    whatHappened: 'The policyholder added a new facility located directly inside a designated catastrophic hazard zone.',
+    triggerCondition: 'Both Unscheduled Facility (R2) AND High-Risk Peril Band (R3) evaluate positive on same policy.',
+    points: 'Forces HIGH',
     severityText: 'Mandatory High Alert',
-    slaTime: 'Urgent: 2 days (Senior Underwriter)',
-    whyItMatters: 'A brand-new, unvetted property in severe harm’s way is a catastrophic risk for claims.',
-    realWorldStory: 'The customer built a new warehouse on Savannah Highway, and it is situated directly inside flood Zone AE near the river.',
-    underwriterNextStep: 'Automatically routed to Marcus Williams (Senior Underwriter) for urgent treaty review before claims happen.',
+    slaTime: '2 business days (Senior UW)',
+    whyItMatters: 'Unvetted property in severe catastrophe zone represents immediate solvency risk.',
+    realWorldStory: 'Unreported warehouse on Savannah Highway sits directly within FEMA flood Zone AE near tidal river.',
+    underwriterNextStep: 'Automatically routed to Senior Underwriter for treaty review.',
   },
   {
     id: 'R6_PORTFOLIO_BREACH',
-    simpleTitle: 'Regional Appetite Cap Exceeded',
+    simpleTitle: 'Regional Portfolio Concentration Breach',
     technicalCode: 'R6_PORTFOLIO_BREACH',
-    category: 'Company Limit',
-    categoryColor: 'bg-red-100 text-red-800 border-red-200',
-    oneLineSummary: 'The portfolio has too much high-risk property value concentrated in one territory for a hazard.',
-    whatHappened: 'An insurer cannot concentrate excessive risk in one territory. Each peril has a strict appetite cap (e.g. 20% for flood, 25% for earthquake, 15% for wildfire).',
-    triggerCondition: 'Regional concentration of high-risk TIV exceeds the peril’s appetite cap (% of total $300M portfolio TIV).',
+    category: 'Portfolio Appetite',
+    oneLineSummary: 'Regional concentration of high-risk TIV exceeds designated portfolio appetite cap.',
+    whatHappened: 'Aggregate high-risk TIV in territory exceeds risk appetite threshold (e.g. 20% for flood, 25% for earthquake).',
+    triggerCondition: 'Territory high-risk TIV concentration exceeds peril appetite cap (% of total $300M portfolio).',
     points: 'Portfolio Breach Flag',
     severityText: 'Appetite Restriction',
-    slaTime: 'Immediate Senior Sign-off',
-    whyItMatters: 'Solvency and financial protection against catastrophic correlated events.',
-    realWorldStory: 'Adding a new coastal Savannah facility pushes the South-East flood share from 19.70% to 20.07%, crossing the 20.00% cap.',
-    underwriterNextStep: 'A red warning banner locks binding authority in that territory without executive sign-off.',
+    slaTime: 'Immediate Executive Sign-off',
+    whyItMatters: 'Guards carrier solvency against correlated multi-policy catastrophe events.',
+    realWorldStory: 'Adding Savannah facility pushes South-East flood share from 19.70% to 20.07%, crossing 20.00% cap.',
+    underwriterNextStep: 'Restricts automatic binding authority in territory without treaty exception.',
   },
 ];
 
-const SIMPLE_SEVERITY_LEVELS = [
+const SEVERITY_LEVELS = [
   {
-    badge: 'High Priority (5+ points)',
-    chipClass: 'chip-high',
-    sla: 'Within 2 Business Days',
-    meaning: 'Big risk change. Requires immediate attention and may escalate to a Senior Underwriter.',
+    label: 'High Priority',
+    points: '5+ pts',
+    badgeClass: 'badge-high',
+    sla: '2 Business Days',
+    desc: 'Material risk expansion or compound hazard. Immediate senior review.',
   },
   {
-    badge: 'Medium Priority (3–4 points)',
-    chipClass: 'chip-medium',
-    sla: 'Within 5 Business Days',
-    meaning: 'Moderate change. Underwriter reviews it during their normal weekly review queue.',
+    label: 'Medium Priority',
+    points: '3–4 pts',
+    badgeClass: 'badge-medium',
+    sla: '5 Business Days',
+    desc: 'Moderate valuation or single hazard shift. Standard underwriting queue.',
   },
   {
-    badge: 'Low Priority (1–2 points)',
-    chipClass: 'chip-low',
-    sla: 'Within 10 Business Days',
-    meaning: 'Minor detail. Noted on the policy and checked during next year’s annual renewal.',
+    label: 'Low Priority',
+    points: '1–2 pts',
+    badgeClass: 'badge-low',
+    sla: '10 Business Days',
+    desc: 'Minor location or peril adjustment. Evaluated at renewal cycle.',
   },
   {
-    badge: 'Ignored (0 points)',
-    chipClass: 'chip-verify',
-    sla: 'No action needed',
-    meaning: 'Tiny change (under 10%). Filtered out as background noise so underwriters aren’t spammed.',
+    label: 'Immaterial Noise',
+    points: '0 pts',
+    badgeClass: 'badge-neutral',
+    sla: 'Suppressed',
+    desc: 'Sub-threshold change (<10% TIV). Filtered without creating review activities.',
   },
 ];
 
@@ -153,18 +150,26 @@ export function Rules(): React.ReactElement {
 
   if (query.isLoading) {
     return (
-      <div className="p-12 flex flex-col items-center justify-center min-h-[400px] text-slate-500 space-y-3">
-        <div className="w-8 h-8 border-3 border-teal-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm font-medium">Loading rules catalog...</p>
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[360px] text-[#7A7A74] space-y-2">
+        <div className="spinner" />
+        <p className="text-xs">Loading deterministic rules configuration...</p>
       </div>
     );
   }
 
   if (query.isError || !query.data) {
     return (
-      <div className="p-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-5 shadow-sm">
-          Unable to load active rule configuration.
+      <div className="p-6 max-w-5xl">
+        <div
+          className="p-4 text-xs space-y-2"
+          style={{
+            backgroundColor: 'var(--risk-high-bg)',
+            border: '1px solid var(--risk-high-border)',
+            color: 'var(--risk-high-text)',
+            borderRadius: '4px',
+          }}
+        >
+          Unable to load active rule configuration from server rules.yaml.
         </div>
       </div>
     );
@@ -184,78 +189,90 @@ export function Rules(): React.ReactElement {
       : EASY_RULES.filter((r) => r.category.toUpperCase().replace(/\s+/g, '_') === selectedCategory);
 
   const filterTabs = [
-    { id: 'ALL', label: 'All 6 Rules' },
-    { id: 'PROPERTY_VALUE', label: 'Property Value' },
-    { id: 'NEW_BUILDING', label: 'New Buildings' },
-    { id: 'FLOOD_HAZARD', label: 'Flood Hazard' },
-    { id: 'COMBINED_RISK', label: 'Double Trouble' },
-    { id: 'COMPANY_LIMIT', label: 'Company Safety Limits' },
+    { id: 'ALL', label: 'All Rules (6)' },
+    { id: 'VALUATION', label: 'Valuation' },
+    { id: 'LOCATION_SCHEDULE', label: 'Location Schedule' },
+    { id: 'HAZARD_RE-MAPPING', label: 'Hazard Re-mapping' },
+    { id: 'COMPOUND_RISK', label: 'Compound Risk' },
+    { id: 'PORTFOLIO_APPETITE', label: 'Portfolio Appetite' },
   ];
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-8 fade-in max-w-7xl">
+    <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 uppercase tracking-wider">
-              Plain English Guide
+          <div className="flex items-center gap-2 mb-1">
+            <span className="badge badge-low text-[10px]">
+              Engine v{query.data?.version ?? '1.0.0'}
             </span>
-            <span className="text-xs text-slate-400">•</span>
-            <span className="text-xs text-slate-500">How Sentinel Detects Risk</span>
+            <span className="text-xs text-[#A8A8A0]">·</span>
+            <span className="text-xs text-[#7A7A74]">Deterministic Underwriting Rules</span>
           </div>
-          <h1 className="text-2xl font-heading font-extrabold text-slate-900 tracking-tight mt-1">
-            How the Rules Work
+          <h1 className="text-xl font-semibold tracking-tight text-[#1A1A18]">
+            Deterministic Drift Rule Specifications
           </h1>
-          <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-            When a business changes in the real world, Sentinel checks these 6 simple rules to decide if an underwriter needs to be alerted.
+          <p className="text-xs text-[#7A7A74] mt-0.5">
+            Transparent scoring criteria used by Exposure Drift Sentinel to evaluate incoming external signals and triage underwriter tickets.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors"
+            className="btn btn-secondary text-xs"
           >
-            {showTechnicalDetails ? '👀 Simple View' : '⚙️ Show Technical Codes'}
+            {showTechnicalDetails ? 'Simple View' : 'Show Technical Codes'}
           </button>
 
           <button
             type="button"
             onClick={() => setShowRawYaml(!showRawYaml)}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-800 transition-colors"
+            className="btn btn-secondary text-xs"
           >
             {showRawYaml ? 'Hide YAML' : 'View YAML'}
           </button>
         </div>
       </div>
 
-      {/* 30-Second Scoring Explainer Bar */}
-      <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-navy-950 text-white shadow-md space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">💡</span>
-            <h2 className="font-heading font-bold text-sm text-white">
-              How Scoring Works (In 30 Seconds)
-            </h2>
-          </div>
-          <span className="text-[11px] text-slate-400 font-medium hidden sm:block">
-            Rules add points $\rightarrow$ Points determine urgency
+      {/* SLA & Materiality Summary Strip */}
+      <div
+        className="p-4 rounded bg-white"
+        style={{ border: '1px solid var(--border)' }}
+      >
+        <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
+          <span className="text-xs font-semibold text-[#1A1A18]">
+            Materiality Scoring & SLA Thresholds
+          </span>
+          <span className="text-[11px] text-[#7A7A74]">
+            Evaluated deterministically on signal ingestion
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-          {SIMPLE_SEVERITY_LEVELS.map((level, i) => (
-            <div key={i} className="p-3 rounded-xl bg-white/10 border border-white/10 space-y-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-3">
+          {SEVERITY_LEVELS.map((level, i) => (
+            <div
+              key={i}
+              className="p-3 rounded space-y-1"
+              style={{
+                backgroundColor: 'var(--surface-raised)',
+                border: '1px solid var(--border)',
+              }}
+            >
               <div className="flex items-center justify-between">
-                <span className={`chip ${level.chipClass} text-[10px]`}>
-                  {level.badge}
+                <span className={`badge ${level.badgeClass} text-[10px]`}>
+                  {level.label}
+                </span>
+                <span className="font-mono text-xs font-semibold text-[#1A1A18] tabular-nums">
+                  {level.points}
                 </span>
               </div>
-              <div className="text-[11px] font-bold text-teal-300">{level.sla}</div>
-              <p className="text-[11px] text-slate-300 leading-normal font-normal">
-                {level.meaning}
+              <div className="text-xs font-medium text-[#1A1A18] pt-1">
+                SLA: {level.sla}
+              </div>
+              <p className="text-[11px] text-[#7A7A74] leading-normal">
+                {level.desc}
               </p>
             </div>
           ))}
@@ -263,116 +280,125 @@ export function Rules(): React.ReactElement {
       </div>
 
       {/* Category Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-slate-200">
+      <div className="tab-list">
         {filterTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setSelectedCategory(tab.id)}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
-              selectedCategory === tab.id
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-            }`}
+            className={`tab-item text-xs ${selectedCategory === tab.id ? 'active' : ''}`}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* 6 Easy-to-Understand Rule Cards */}
+      {/* Rule Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {filteredRules.map((rule) => (
           <div
             key={rule.id}
-            className="eds-card p-6 space-y-4 hover:border-teal-400 transition-all shadow-sm"
+            className="panel p-5 bg-white space-y-3.5 flex flex-col justify-between"
           >
-            {/* Title & Badge */}
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${rule.categoryColor}`}>
-                    {rule.category}
-                  </span>
-                  {showTechnicalDetails && (
-                    <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                      {rule.technicalCode}
+            <div className="space-y-3">
+              {/* Header: Title & Badges */}
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="badge badge-neutral text-[10px]">
+                      {rule.category}
                     </span>
-                  )}
+                    {showTechnicalDetails && (
+                      <span className="font-mono text-[10px] text-[#7A7A74] px-1.5 py-0.5 rounded bg-[#F2F1EE]">
+                        {rule.technicalCode}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-sm font-semibold tracking-tight text-[#1A1A18]">
+                    {rule.simpleTitle}
+                  </h3>
                 </div>
-                <h3 className="font-heading font-extrabold text-base text-slate-900">
-                  {rule.simpleTitle}
-                </h3>
-              </div>
 
-              <div className="text-right flex-shrink-0">
-                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200 block">
-                  {rule.points}
-                </span>
-                <span className="text-[10px] text-slate-400 mt-0.5 block">{rule.slaTime}</span>
-              </div>
-            </div>
-
-            {/* Quick summary */}
-            <p className="text-xs text-slate-700 font-medium leading-relaxed">
-              {rule.oneLineSummary}
-            </p>
-
-            {/* What happened & Why it matters in simple 2-box grid */}
-            <div className="space-y-2">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                  <span>❓</span> When does this trigger?
+                <div className="text-right flex-shrink-0">
+                  <span className="badge badge-low text-xs font-mono font-medium">
+                    {rule.points}
+                  </span>
+                  <div className="text-[10px] text-[#7A7A74] mt-0.5">{rule.slaTime}</div>
                 </div>
-                <p className="text-xs text-slate-700 leading-normal font-normal">
-                  {rule.triggerCondition}
-                </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 space-y-1">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1">
-                  <span>⚠️</span> Why does the insurer care?
-                </div>
-                <p className="text-xs text-amber-900 leading-normal font-normal">
-                  {rule.whyItMatters}
-                </p>
-              </div>
-            </div>
-
-            {/* Real World Example Story */}
-            <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-200/70 space-y-1">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-blue-800 flex items-center gap-1">
-                <span>📖</span> Real-World Example
-              </div>
-              <p className="text-xs text-slate-700 leading-relaxed font-normal">
-                {rule.realWorldStory}
+              {/* Summary */}
+              <p className="text-xs text-[#4A4A45] leading-relaxed">
+                {rule.oneLineSummary}
               </p>
+
+              {/* Trigger & Rationale Box */}
+              <div
+                className="p-3 rounded space-y-2 text-xs"
+                style={{
+                  backgroundColor: 'var(--surface-raised)',
+                  border: '1px solid var(--border)',
+                }}
+              >
+                <div>
+                  <span className="text-[10px] font-semibold text-[#7A7A74] uppercase tracking-wider block">
+                    Trigger Condition
+                  </span>
+                  <p className="text-xs text-[#1A1A18] mt-0.5">
+                    {rule.triggerCondition}
+                  </p>
+                </div>
+                <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                  <span className="text-[10px] font-semibold text-[#7A7A74] uppercase tracking-wider block">
+                    Underwriting Exposure
+                  </span>
+                  <p className="text-xs text-[#4A4A45] mt-0.5">
+                    {rule.whyItMatters}
+                  </p>
+                </div>
+              </div>
+
+              {/* Case Example */}
+              <div className="text-xs text-[#7A7A74] leading-relaxed">
+                <span className="font-semibold text-[#4A4A45]">Exemplar: </span>
+                {rule.realWorldStory}
+              </div>
             </div>
 
-            {/* What the Underwriter does */}
-            <div className="pt-2 border-t border-slate-100 flex items-start gap-2 text-xs text-slate-600">
-              <span className="text-teal-600 font-bold">Action:</span>
-              <span className="text-slate-700">{rule.underwriterNextStep}</span>
+            {/* Action Required */}
+            <div className="pt-2.5 border-t flex items-center justify-between text-xs" style={{ borderColor: 'var(--border)' }}>
+              <span className="text-[#7A7A74]">Prescribed Workflow:</span>
+              <span className="font-medium text-[#2D6A4F]">{rule.underwriterNextStep}</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Raw YAML Viewer (Collapsible) */}
+      {/* Raw YAML Viewer */}
       {showRawYaml && (
-        <section className="eds-card overflow-hidden slide-down">
-          <div className="px-5 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-            <span className="font-mono text-xs font-bold text-slate-700">
+        <section className="panel overflow-hidden bg-white">
+          <div
+            className="px-5 py-3 flex items-center justify-between border-b"
+            style={{
+              backgroundColor: 'var(--surface-raised)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <span className="font-mono text-xs font-semibold text-[#1A1A18]">
               server/rules.yaml (Active Configuration File)
             </span>
             <button
+              type="button"
               onClick={handleCopy}
-              className="px-3 py-1 rounded text-xs font-semibold border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors"
+              className="btn btn-secondary text-xs"
             >
-              {copied ? 'Copied!' : 'Copy YAML'}
+              {copied ? 'Copied' : 'Copy YAML'}
             </button>
           </div>
 
-          <pre className="p-5 font-mono text-xs text-slate-800 bg-slate-50/70 leading-relaxed overflow-x-auto whitespace-pre-wrap">
+          <pre
+            className="p-5 font-mono text-xs text-[#1A1A18] leading-relaxed overflow-x-auto whitespace-pre-wrap"
+            style={{ backgroundColor: 'var(--surface-raised)' }}
+          >
             {query.data.yamlText}
           </pre>
         </section>

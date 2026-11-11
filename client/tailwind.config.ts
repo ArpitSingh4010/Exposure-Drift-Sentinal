@@ -6,72 +6,86 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        heading: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        mono: [
+          'SFMono-Regular', 'SF Mono', 'ui-monospace',
+          'Cascadia Code', 'Menlo', 'Courier New', 'monospace',
+        ],
       },
       colors: {
-        // ── Brand palette ─────────────────────────────────────────────────
-        navy: {
-          50: '#f0f4fa',
-          100: '#d9e2f1',
-          200: '#b3c6e4',
-          300: '#8da9d6',
-          400: '#5c84c2',
-          500: '#3463ab',
-          600: '#264e8e',
-          700: '#1b3b70',
-          800: '#11274d',
-          900: '#0B1F3A', // primary topbar
-          950: '#07152b', // deep midnight
+        // Warm neutral palette
+        canvas: '#F7F6F3',
+        surface: {
+          DEFAULT: '#FFFFFF',
+          raised: '#FAFAF8',
+          subtle: '#F2F1EE',
+          hover: '#EDECE9',
+          active: '#E8E7E3',
         },
-        teal: {
-          50: '#ecfdf9',
-          100: '#d1fae5',
-          200: '#a7f3d0',
-          300: '#6ee7b7',
-          400: '#34d399',
-          500: '#00c7b8', // primary accent
-          600: '#00a89b',
-          700: '#008b80',
-          800: '#056b63',
-          900: '#044c46',
+        // Forest green accent
+        forest: {
+          50:  '#EAF4EE',
+          100: '#C0DAC9',
+          200: '#8DC0A3',
+          300: '#5DA37A',
+          500: '#2D6A4F',   // primary
+          600: '#1E4D38',   // hover
+          700: '#163827',
         },
-        cyan: {
-          400: '#22d3ee',
-          500: '#06b6d4',
-          600: '#0891b2',
+        // Text
+        ink: {
+          DEFAULT: '#1A1A18',  // primary
+          2: '#4A4A45',        // secondary
+          3: '#7A7A74',        // muted
+          4: '#A8A8A0',        // faint
         },
-        slate: {
-          850: '#152136',
-          950: '#0a0f1d',
+        // Topbar
+        onyx: {
+          DEFAULT: '#1C1C1A',
+          soft: '#2A2A27',
+          border: '#2E2E2B',
         },
-        severity: {
-          high: '#dc2626',      // red-600
-          medium: '#d97706',    // amber-600
-          low: '#2563eb',       // blue-600
-          verify: '#6b7280',    // gray-500
+        // Borders
+        line: {
+          DEFAULT: '#E2E0DB',
+          strong: '#CCCAC4',
+        },
+        // Risk
+        risk: {
+          'high-bg':     '#FEF2F0',
+          'high-text':   '#B42318',
+          'high-border': '#FECDC9',
+          'med-bg':      '#FFFAEB',
+          'med-text':    '#B54708',
+          'med-border':  '#FEDF89',
         },
       },
       fontSize: {
-        // Enterprise density — 14px base
-        base: ['14px', { lineHeight: '20px' }],
-        sm: ['12px', { lineHeight: '16px' }],
-        xs: ['11px', { lineHeight: '14px' }],
-        lg: ['16px', { lineHeight: '24px' }],
-        xl: ['18px', { lineHeight: '28px' }],
-        '2xl': ['22px', { lineHeight: '30px' }],
-        '3xl': ['28px', { lineHeight: '36px' }],
+        '2xs': ['0.6875rem', { lineHeight: '1rem' }],
+        xs:    ['0.75rem',   { lineHeight: '1.125rem' }],
+        sm:    ['0.8125rem', { lineHeight: '1.25rem' }],
+        base:  ['0.875rem',  { lineHeight: '1.375rem' }],
+        md:    ['0.9375rem', { lineHeight: '1.5rem' }],
+        lg:    ['1rem',      { lineHeight: '1.5rem' }],
+        xl:    ['1.125rem',  { lineHeight: '1.625rem' }],
+        '2xl': ['1.25rem',   { lineHeight: '1.75rem' }],
       },
       boxShadow: {
-        card: '0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)',
-        'card-hover': '0 10px 25px -5px rgb(11 31 58 / 0.08), 0 8px 10px -6px rgb(11 31 58 / 0.04)',
-        topbar: '0 4px 20px -2px rgb(7 21 43 / 0.35)',
-        glow: '0 0 20px -2px rgba(0, 199, 184, 0.35)',
-        'glow-red': '0 0 20px -2px rgba(220, 38, 38, 0.35)',
+        xs:    '0 1px 2px 0 rgba(26, 26, 24, 0.04)',
+        sm:    '0 1px 3px 0 rgba(26, 26, 24, 0.06), 0 1px 2px -1px rgba(26, 26, 24, 0.04)',
+        md:    '0 4px 6px -1px rgba(26, 26, 24, 0.07), 0 2px 4px -2px rgba(26, 26, 24, 0.05)',
+        modal: '0 20px 40px -8px rgba(26, 26, 24, 0.20), 0 8px 16px -4px rgba(26, 26, 24, 0.10)',
       },
       borderRadius: {
-        chip: '6px',
-        card: '10px',
+        DEFAULT: '5px',
+        sm: '3px',
+        md: '6px',
+        lg: '8px',
+      },
+      spacing: {
+        '4.5': '1.125rem',
+        '13': '3.25rem',
+        '15': '3.75rem',
+        '18': '4.5rem',
       },
     },
   },

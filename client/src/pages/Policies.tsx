@@ -47,54 +47,66 @@ export function Policies(): React.ReactElement {
   const selectedDetail = detailQuery.data;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 fade-in max-w-7xl">
+    <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-1">
         <div>
-          <h1 className="text-2xl font-heading font-semibold text-slate-900 tracking-tight">
-            Policies & Locations
+          <h1 className="text-xl font-semibold tracking-tight text-[#1A1A18]">
+            Policies & Location Schedules
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Commercial property accounts, location schedules, and policy drift history.
+          <p className="text-xs text-[#7A7A74] mt-0.5">
+            Commercial property policy book, insured location schedules, and active baseline snapshots.
           </p>
         </div>
 
-        <div className="w-72 relative">
+        {/* Search */}
+        <div className="w-80 relative">
           <input
             type="text"
             placeholder="Search policy # or insured name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-300 bg-white focus:border-teal-500 shadow-sm"
+            className="field-input w-full pl-8"
           />
           <svg
-            className="w-4 h-4 text-slate-400 absolute left-3 top-3"
+            className="w-3.5 h-3.5 text-[#7A7A74] absolute left-2.5 top-2.5 pointer-events-none"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
       </div>
 
-      {/* Main Grid: Policy List + Selected Policy Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.3fr] gap-6">
-        {/* Left: Policy List Table */}
-        <section className="eds-card overflow-hidden">
-          <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
-            <span className="font-heading font-bold text-xs uppercase tracking-wider text-slate-700">
+      {/* Main Grid: Policy Master List + Detail Drawer */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_1.3fr] gap-6 items-start">
+        {/* Left: Policy Master Table */}
+        <section className="panel overflow-hidden bg-white">
+          <div
+            className="px-4 py-3 flex items-center justify-between border-b"
+            style={{
+              backgroundColor: 'var(--surface-raised)',
+              borderColor: 'var(--border)',
+            }}
+          >
+            <span className="text-xs font-semibold text-[#1A1A18]">
               Policies ({policies.length})
             </span>
-            <span className="text-[11px] text-slate-400 font-medium">Select to inspect details</span>
+            <span className="text-[11px] text-[#7A7A74]">Click to inspect details</span>
           </div>
 
           {policiesQuery.isLoading ? (
-            <div className="p-8 text-center text-xs text-slate-400">Loading policy schedules...</div>
+            <div className="p-12 flex flex-col items-center justify-center text-[#7A7A74] space-y-2">
+              <div className="spinner" />
+              <p className="text-xs">Loading policy schedules...</p>
+            </div>
           ) : policies.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400">No matching policies found.</div>
+            <div className="p-12 text-center text-xs text-[#7A7A74]">
+              No matching policies found.
+            </div>
           ) : (
-            <div className="max-h-[640px] overflow-y-auto divide-y divide-slate-100">
+            <div className="max-h-[660px] overflow-y-auto divide-y" style={{ borderColor: 'var(--border)' }}>
               {policies.map((p: PolicyRecord) => {
                 const isSelected = selectedPolicyId === p.policyId;
 
@@ -105,37 +117,42 @@ export function Policies(): React.ReactElement {
                       setSelectedPolicyId(p.policyId);
                       setActiveTab('summary');
                     }}
-                    className={`p-4 cursor-pointer transition-all ${
+                    className={`p-3.5 cursor-pointer transition-colors ${
                       isSelected
-                        ? 'bg-teal-50/60 border-l-4 border-teal-500 pl-3'
-                        : 'hover:bg-slate-50/80'
+                        ? 'border-l-[3px] border-l-[#2D6A4F]'
+                        : 'hover:bg-[#FAFAF8]'
                     }`}
+                    style={{
+                      backgroundColor: isSelected ? 'var(--green-subtle)' : '#ffffff',
+                    }}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-slate-900">
+                        <span className="font-mono text-xs font-semibold text-[#1A1A18]">
                           {p.policyId}
                         </span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 font-medium">
+                        <span className="badge badge-neutral font-mono text-[10px]">
                           {p.productCode ?? 'CP-BASE'}
                         </span>
                       </div>
-                      <span className="text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                      <span className="text-[11px] text-[#7A7A74]">
                         {p.region}
                       </span>
                     </div>
 
-                    <div className="text-xs font-semibold text-slate-900 mt-1">
+                    <div className="text-xs font-medium text-[#1A1A18] mt-1">
                       {p.account?.name ?? 'Commercial Insured'}
                     </div>
 
-                    <div className="text-[11px] text-blue-700 font-medium mt-0.5">
+                    <div className="text-[11px] text-[#7A7A74] mt-0.5">
                       {PRODUCT_LABELS[p.productCode ?? 'CP-BASE']?.name ?? 'Commercial Property'}
                     </div>
 
-                    <div className="flex items-center justify-between text-xs text-slate-500 mt-2 pt-1 border-t border-slate-100/60">
-                      <span>Premium: <strong>{formatMoney(p.premium)}</strong></span>
-                      <span className="text-emerald-700 font-bold">{p.status}</span>
+                    <div className="flex items-center justify-between text-xs text-[#7A7A74] mt-2 pt-1.5 border-t border-[#F2F1EE]">
+                      <span>Premium: <strong className="text-[#1A1A18] font-normal tabular-nums">{formatMoney(p.premium)}</strong></span>
+                      <span className="badge badge-low text-[10px]">
+                        {p.status}
+                      </span>
                     </div>
                   </div>
                 );
@@ -144,66 +161,72 @@ export function Policies(): React.ReactElement {
           )}
         </section>
 
-        {/* Right: Policy Detail Inspector Drawer */}
-        <section className="eds-card overflow-hidden bg-white">
+        {/* Right: Policy Detail Inspector Panel */}
+        <section className="panel overflow-hidden bg-white">
           {!selectedPolicyId ? (
-            <div className="p-16 text-center space-y-3 text-slate-400">
-              <div className="w-12 h-12 rounded-full bg-slate-100 mx-auto flex items-center justify-center">
-                <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <p className="text-sm font-medium">Select a policy from the list to view locations, historical snapshots, and drift timelines.</p>
+            <div className="p-16 text-center space-y-2 text-[#7A7A74]">
+              <div className="text-2xl mb-1 text-[#A8A8A0]">☵</div>
+              <p className="text-xs font-medium text-[#4A4A45]">No policy selected</p>
+              <p className="text-[11px] text-[#7A7A74] max-w-xs mx-auto">
+                Select a policy from the list on the left to inspect bound locations, historical snapshots, and associated drift events.
+              </p>
             </div>
           ) : detailQuery.isLoading ? (
-            <div className="p-12 text-center text-xs text-slate-400">Loading policy details...</div>
+            <div className="p-16 flex flex-col items-center justify-center text-[#7A7A74] space-y-2">
+              <div className="spinner" />
+              <p className="text-xs">Loading policy details...</p>
+            </div>
           ) : !selectedDetail ? (
-            <div className="p-8 text-center text-xs text-red-500">Failed to load policy record.</div>
+            <div className="p-8 text-center text-xs text-[#B42318]">Failed to load policy record.</div>
           ) : (
             <div>
-              {/* Policy Header */}
-              <div className="p-6 border-b border-slate-200 bg-slate-50/50 space-y-2">
+              {/* Policy Detail Header */}
+              <div
+                className="p-5 border-b space-y-2.5"
+                style={{
+                  backgroundColor: 'var(--surface-raised)',
+                  borderColor: 'var(--border)',
+                }}
+              >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <h2 className="font-semibold text-xl text-slate-900">
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-lg font-semibold tracking-tight text-[#1A1A18]">
                       {selectedDetail.policy.policyId}
                     </h2>
-                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                    <span className="badge badge-neutral font-mono text-[10px]">
                       {selectedDetail.policy.productCode ?? 'CP-BASE'}
                     </span>
                   </div>
-                  <span className="chip chip-open">
+                  <span className="badge badge-low text-[10px]">
                     {selectedDetail.policy.status}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-baseline gap-2">
-                  <p className="text-sm font-semibold text-slate-800">
+
+                <div className="flex flex-wrap items-baseline gap-2 text-xs">
+                  <span className="font-semibold text-[#1A1A18]">
                     {selectedDetail.account?.name ?? 'Commercial Insured'}
-                  </p>
-                  <span className="text-xs text-slate-400">•</span>
-                  <span className="text-xs font-semibold text-blue-700">
+                  </span>
+                  <span className="text-[#A8A8A0]">·</span>
+                  <span className="text-[#2D6A4F] font-medium">
                     {PRODUCT_LABELS[selectedDetail.policy.productCode ?? 'CP-BASE']?.name ?? 'Commercial Property'}
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-[#7A7A74]">
                     ({PRODUCT_LABELS[selectedDetail.policy.productCode ?? 'CP-BASE']?.description ?? 'Monitored hazards'})
                   </span>
                 </div>
-                <div className="flex items-center gap-4 text-xs text-slate-500 pt-1">
-                  <span>Territory: <strong>{selectedDetail.policy.region}</strong></span>
-                  <span>Premium: <strong>{formatMoney(selectedDetail.policy.premium)}</strong></span>
+
+                <div className="flex items-center gap-4 text-xs text-[#7A7A74] pt-1">
+                  <span>Territory: <strong className="text-[#1A1A18] font-normal">{selectedDetail.policy.region}</strong></span>
+                  <span>Premium: <strong className="text-[#1A1A18] font-normal tabular-nums">{formatMoney(selectedDetail.policy.premium)}</strong></span>
                 </div>
 
                 {/* Tabs Bar */}
-                <div className="flex gap-2 pt-3 border-t border-slate-200">
+                <div className="tab-list pt-2">
                   {(['summary', 'locations', 'drift', 'snapshots'] as const).map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
-                        activeTab === tab
-                          ? 'bg-navy-900 text-white shadow-sm'
-                          : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                      }`}
+                      className={`tab-item capitalize text-xs ${activeTab === tab ? 'active' : ''}`}
                     >
                       {tab}
                     </button>
@@ -212,29 +235,61 @@ export function Policies(): React.ReactElement {
               </div>
 
               {/* Tab Contents */}
-              <div className="p-6 max-h-[520px] overflow-y-auto">
+              <div className="p-5 max-h-[520px] overflow-y-auto">
                 {activeTab === 'summary' && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                        <span className="eds-label">Bound Locations</span>
-                        <div className="text-2xl font-heading font-extrabold text-slate-900 mt-1">
+                      <div
+                        className="p-4 rounded"
+                        style={{
+                          backgroundColor: 'var(--surface-raised)',
+                          border: '1px solid var(--border)',
+                        }}
+                      >
+                        <span className="text-[11px] font-medium text-[#7A7A74] uppercase tracking-wider">
+                          Bound Locations
+                        </span>
+                        <div className="text-xl font-semibold text-[#1A1A18] tabular-nums mt-1">
                           {selectedDetail.locations.length}
                         </div>
                       </div>
-                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                        <span className="eds-label">Latest Baseline TIV</span>
-                        <div className="text-2xl font-heading font-extrabold text-teal-700 mt-1">
+                      <div
+                        className="p-4 rounded"
+                        style={{
+                          backgroundColor: 'var(--surface-raised)',
+                          border: '1px solid var(--border)',
+                        }}
+                      >
+                        <span className="text-[11px] font-medium text-[#7A7A74] uppercase tracking-wider">
+                          Latest Baseline TIV
+                        </span>
+                        <div className="text-xl font-semibold text-[#2D6A4F] tabular-nums mt-1">
                           {selectedDetail.latestSnapshot ? formatMoney(selectedDetail.latestSnapshot.state.totalTiv) : '—'}
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-xl border border-slate-200 space-y-2">
-                      <span className="eds-label">Account Metadata</span>
-                      <div className="text-xs text-slate-700 flex justify-between">
-                        <span>Account ID: <strong>{selectedDetail.policy.accountId}</strong></span>
-                        <span>Territory: <strong>{selectedDetail.policy.region}</strong></span>
+                    <div
+                      className="p-4 rounded space-y-2"
+                      style={{
+                        backgroundColor: '#ffffff',
+                        border: '1px solid var(--border)',
+                      }}
+                    >
+                      <span className="text-[11px] font-medium text-[#7A7A74] uppercase tracking-wider">
+                        Account Information
+                      </span>
+                      <div className="text-xs text-[#4A4A45] flex justify-between py-1 border-b border-[#F2F1EE]">
+                        <span className="text-[#7A7A74]">Account ID</span>
+                        <span className="font-mono text-[#1A1A18]">{selectedDetail.policy.accountId}</span>
+                      </div>
+                      <div className="text-xs text-[#4A4A45] flex justify-between py-1 border-b border-[#F2F1EE]">
+                        <span className="text-[#7A7A74]">Region</span>
+                        <span className="text-[#1A1A18]">{selectedDetail.policy.region}</span>
+                      </div>
+                      <div className="text-xs text-[#4A4A45] flex justify-between py-1">
+                        <span className="text-[#7A7A74]">Product Model</span>
+                        <span className="text-[#1A1A18]">{selectedDetail.policy.productCode ?? 'CP-BASE'}</span>
                       </div>
                     </div>
                   </div>
@@ -245,26 +300,30 @@ export function Policies(): React.ReactElement {
                     {selectedDetail.locations.map((loc) => (
                       <div
                         key={loc.locationId}
-                        className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2"
+                        className="p-3.5 rounded space-y-1.5"
+                        style={{
+                          backgroundColor: 'var(--surface-raised)',
+                          border: '1px solid var(--border)',
+                        }}
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-sm text-slate-900">{loc.addressLine}</span>
-                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-bold">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-semibold text-[#1A1A18]">{loc.addressLine}</span>
+                          <span className="font-mono text-[10px] text-[#7A7A74] px-1.5 py-0.5 rounded bg-[#F2F1EE]">
                             {loc.locationId}
                           </span>
                         </div>
-                        <div className="text-xs text-slate-600 flex justify-between items-baseline">
+                        <div className="text-xs text-[#7A7A74] flex justify-between items-baseline">
                           <div>
                             {loc.floodZone && (
-                              <span>Flood Zone: <strong>{loc.floodZone}</strong> (Score {loc.floodScore})</span>
+                              <span>Flood Zone: <strong className="text-[#4A4A45]">{loc.floodZone}</strong> (Score {loc.floodScore})</span>
                             )}
                             {loc.hazards && Object.entries(loc.hazards).map(([h, r]) => (
-                              <span key={h} className="block text-slate-500 capitalize">
-                                {h}: <strong>{r.band}</strong> ({r.score}/10)
+                              <span key={h} className="block text-[#7A7A74] capitalize mt-0.5">
+                                {h}: <strong className="text-[#4A4A45]">{r.band}</strong> ({r.score}/10)
                               </span>
                             ))}
                           </div>
-                          <span className="font-semibold text-slate-900">{formatMoney(loc.tiv)}</span>
+                          <span className="font-semibold text-[#1A1A18] tabular-nums">{formatMoney(loc.tiv)}</span>
                         </div>
                       </div>
                     ))}
@@ -274,24 +333,27 @@ export function Policies(): React.ReactElement {
                 {activeTab === 'drift' && (
                   <div className="space-y-3">
                     {selectedDetail.drift.length === 0 ? (
-                      <p className="text-xs text-slate-400 italic">No drift events recorded for this policy.</p>
+                      <p className="text-xs text-[#7A7A74] italic p-4 text-center">No drift events recorded for this policy.</p>
                     ) : (
                       selectedDetail.drift.map((ev) => (
                         <div
                           key={ev.eventId}
                           onClick={() => navigate(`/events/${ev.eventId}`)}
-                          className="p-4 rounded-xl border border-slate-200 bg-white space-y-2 shadow-sm hover:border-teal-500 hover:shadow-md cursor-pointer transition-all group"
+                          className="p-3.5 rounded space-y-2 cursor-pointer transition-colors hover:bg-[#FAFAF8]"
+                          style={{
+                            border: '1px solid var(--border)',
+                          }}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="font-mono text-xs font-bold text-slate-800 group-hover:text-teal-700 transition-colors">
+                            <span className="font-mono text-xs font-semibold text-[#1A1A18] hover:text-[#2D6A4F] transition-colors">
                               {ev.eventId} &rarr;
                             </span>
                             <SeverityChip severity={ev.severity} />
                           </div>
-                          <p className="text-xs text-slate-700 font-medium">{ev.whyItMatters}</p>
-                          <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
-                            <span>Status: <strong>{ev.status}</strong></span>
-                            <span>Score: <strong>{ev.score} pts</strong></span>
+                          <p className="text-xs text-[#4A4A45] leading-relaxed">{ev.whyItMatters}</p>
+                          <div className="flex items-center justify-between text-xs text-[#7A7A74] pt-1 border-t border-[#F2F1EE]">
+                            <span>Status: <strong className="text-[#1A1A18] capitalize font-normal">{ev.status.replace(/_/g, ' ').toLowerCase()}</strong></span>
+                            <span>Score: <strong className="text-[#1A1A18] font-normal tabular-nums">{ev.score} pts</strong></span>
                           </div>
                         </div>
                       ))
@@ -302,24 +364,30 @@ export function Policies(): React.ReactElement {
                 {activeTab === 'snapshots' && (
                   <div className="space-y-3">
                     {selectedDetail.latestSnapshot ? (
-                      <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                      <div
+                        className="p-4 rounded space-y-2"
+                        style={{
+                          backgroundColor: 'var(--surface-raised)',
+                          border: '1px solid var(--border)',
+                        }}
+                      >
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#4A4A45]">
                             Snapshot: {selectedDetail.latestSnapshot.kind}
                           </span>
-                          <span className="text-xs text-teal-700 font-bold bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
+                          <span className="badge badge-low text-[10px]">
                             Active Baseline
                           </span>
                         </div>
-                        <div className="text-lg font-heading font-extrabold text-navy-950">
+                        <div className="text-lg font-semibold text-[#1A1A18] tabular-nums">
                           Total TIV: {formatMoney(selectedDetail.latestSnapshot.state.totalTiv)}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs text-[#7A7A74]">
                           Locations on schedule: {selectedDetail.latestSnapshot.state.locations.length}
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-400 italic">No snapshot recorded.</p>
+                      <p className="text-xs text-[#7A7A74] italic p-4 text-center">No baseline snapshot recorded.</p>
                     )}
                   </div>
                 )}

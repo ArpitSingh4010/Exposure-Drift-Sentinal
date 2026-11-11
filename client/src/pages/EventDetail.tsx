@@ -16,7 +16,7 @@ function formatMoney(value: number): string {
 function renderHazardSummary(loc: SnapshotLocation): React.ReactNode {
   const items: string[] = [];
   if (loc.floodZone) {
-    items.push(`Flood: ${loc.floodZone} (score ${loc.floodScore ?? '-'})`);
+    items.push(`Flood ${loc.floodZone} (score ${loc.floodScore ?? '-'})`);
   }
   if (loc.hazards) {
     for (const [hazard, reading] of Object.entries(loc.hazards)) {
@@ -24,7 +24,7 @@ function renderHazardSummary(loc: SnapshotLocation): React.ReactNode {
     }
   }
   if (items.length === 0) return 'No hazard readings on record';
-  return items.join(', ');
+  return items.join(' · ');
 }
 
 export function EventDetail(): React.ReactElement {
@@ -37,19 +37,27 @@ export function EventDetail(): React.ReactElement {
 
   if (query.isLoading) {
     return (
-      <div className="p-8 flex flex-col items-center justify-center min-h-[300px] text-slate-500 space-y-2">
-        <div className="w-5 h-5 border-2 border-slate-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs font-medium">Loading event detail...</p>
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[360px] text-[#7A7A74] space-y-2">
+        <div className="spinner" />
+        <p className="text-xs">Loading event investigation workspace...</p>
       </div>
     );
   }
 
   if (query.isError || !event) {
     return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 text-red-700 rounded p-4 text-xs font-medium space-y-2">
-          <div>Unable to find drift event {eventId}.</div>
-          <Link to="/desktop" className="text-blue-700 font-medium block">
+      <div className="p-6 max-w-5xl">
+        <div
+          className="p-4 text-xs space-y-2"
+          style={{
+            backgroundColor: 'var(--risk-high-bg)',
+            border: '1px solid var(--risk-high-border)',
+            color: 'var(--risk-high-text)',
+            borderRadius: '4px',
+          }}
+        >
+          <div>Unable to find drift event <span className="font-mono font-semibold">{eventId}</span>.</div>
+          <Link to="/desktop" className="text-[#2D6A4F] hover:underline font-medium block">
             Return to review queue
           </Link>
         </div>
@@ -83,121 +91,164 @@ export function EventDetail(): React.ReactElement {
       : '0';
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl">
+    <div className="p-6 lg:p-8 space-y-6 max-w-7xl">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <Link to="/desktop" className="hover:text-slate-900 transition-colors">
-          Review queue
+      <nav className="flex items-center gap-2 text-xs text-[#7A7A74]">
+        <Link to="/desktop" className="hover:text-[#1A1A18] transition-colors">
+          Review Queue
         </Link>
         <span>/</span>
-        <span className="text-slate-800 font-medium">{event.eventId}</span>
-      </div>
+        <span className="font-mono text-[#1A1A18] font-medium">{event.eventId}</span>
+      </nav>
 
-      {/* Header Card */}
-      <div className="eds-card p-5 bg-white">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
-                {event.policyId}
-              </h1>
-              <SeverityChip severity={event.severity} />
-              <span className="chip chip-open">
-                {event.status.replace(/_/g, ' ').toLowerCase()}
+      {/* Investigation Header */}
+      <div className="panel p-5 bg-white flex flex-wrap items-start justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="text-xl font-semibold tracking-tight text-[#1A1A18]">
+              {event.policyId}
+            </h1>
+            <SeverityChip severity={event.severity} />
+            <span className="badge badge-neutral uppercase tracking-wider text-[10px]">
+              {event.status.replace(/_/g, ' ')}
+            </span>
+            {event.portfolioBreach && (
+              <span className="badge badge-high">
+                Appetite Breach
               </span>
-              {event.portfolioBreach && (
-                <span className="chip chip-high">
-                  Appetite breach
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500">
-              Drift Event <strong className="font-mono text-slate-700">{event.eventId}</strong>, Rule Version <span className="font-mono text-slate-700">{event.ruleVersion.slice(0, 8)}</span>
-            </p>
+            )}
           </div>
+          <p className="text-xs text-[#7A7A74] flex items-center gap-3">
+            <span>Event: <strong className="font-mono text-[#4A4A45]">{event.eventId}</strong></span>
+            <span>·</span>
+            <span>Rule Engine: <span className="font-mono text-[#4A4A45]">{event.ruleVersion.slice(0, 8)}</span></span>
+          </p>
+        </div>
 
-          <div className="p-3 rounded bg-slate-50 border border-slate-200 text-right min-w-[140px]">
-            <div className="text-xs font-medium text-slate-500">Match confidence</div>
-            <div className="text-lg font-semibold text-slate-900 mt-0.5">
-              {Math.round(event.confidence * 100)}%
-            </div>
+        {/* Confidence metric indicator */}
+        <div
+          className="px-4 py-2.5 text-right rounded"
+          style={{
+            backgroundColor: 'var(--surface-raised)',
+            border: '1px solid var(--border)',
+            minWidth: '130px',
+          }}
+        >
+          <div className="text-[11px] font-medium text-[#7A7A74]">Match Confidence</div>
+          <div className="text-lg font-semibold tracking-tight text-[#1A1A18] tabular-nums mt-0.5">
+            {Math.round(event.confidence * 100)}%
           </div>
         </div>
       </div>
 
       {/* Notice Banners */}
       {event.portfolioBreach && (
-        <div className="rounded border border-red-200 bg-red-50 p-4 text-xs text-red-800">
-          <strong className="font-semibold">Portfolio appetite breach:</strong> This change causes regional hazard exposure to exceed the designated appetite cap.
+        <div
+          className="p-3.5 text-xs flex items-center justify-between"
+          style={{
+            backgroundColor: 'var(--risk-high-bg)',
+            border: '1px solid var(--risk-high-border)',
+            color: 'var(--risk-high-text)',
+            borderRadius: '4px',
+          }}
+        >
+          <div>
+            <strong>Portfolio Appetite Breach:</strong> This drift change elevates regional hazard exposure beyond the established portfolio concentration cap.
+          </div>
+          <Link to="/portfolio" className="text-[11px] font-semibold underline hover:no-underline ml-4 whitespace-nowrap">
+            Inspect Portfolio
+          </Link>
         </div>
       )}
 
       {event.verifyFirst && (
-        <div className="rounded border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700">
-          <strong className="font-semibold">Verify match before review:</strong> Entity resolution confidence is below 75%. Confirm insured name and location details prior to accepting.
+        <div
+          className="p-3.5 text-xs"
+          style={{
+            backgroundColor: 'var(--risk-med-bg)',
+            border: '1px solid var(--risk-med-border)',
+            color: 'var(--risk-med-text)',
+            borderRadius: '4px',
+          }}
+        >
+          <strong>Verify Match Before Review:</strong> Entity resolution confidence is below 75%. Confirm insured legal entity and geographic coordinates prior to accepting this snapshot.
         </div>
       )}
 
-      {/* Main Grid: Comparison & Rules */}
-      <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.6fr] gap-6">
+      {/* Main Grid: Comparison & Deterministic Rules (Left) + Action Terminal (Right) */}
+      <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.6fr] gap-6 items-start">
         <div className="space-y-6">
-          {/* Side-by-Side Comparison Card */}
-          <section className="eds-card overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          {/* Side-by-Side Comparison */}
+          <section className="panel overflow-hidden bg-white">
+            <div
+              className="px-5 py-3 flex items-center justify-between"
+              style={{
+                backgroundColor: 'var(--surface-raised)',
+                borderBottom: '1px solid var(--border)',
+              }}
+            >
               <div>
-                <h2 className="font-semibold text-sm text-slate-900">
+                <h2 className="text-xs font-semibold tracking-tight text-[#1A1A18]">
                   Risk Snapshot Comparison
                 </h2>
-                <p className="text-xs text-slate-500">
-                  Bound baseline record vs. Real-world candidate state
+                <p className="text-[11px] text-[#7A7A74]">
+                  Bound baseline record vs. Ingested candidate state
                 </p>
               </div>
+
               {tivDelta > 0 ? (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                <span className="badge badge-medium tabular-nums font-medium">
                   +{formatMoney(tivDelta)} (+{tivPct}%)
                 </span>
               ) : tivDelta < 0 ? (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span className="badge badge-low tabular-nums font-medium">
                   {formatMoney(tivDelta)} ({tivPct}%)
                 </span>
               ) : (
-                <span className="text-xs font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                  Valuation unchanged (hazard risk shift only)
+                <span className="badge badge-neutral text-[10px]">
+                  Valuation unchanged (hazard shift only)
                 </span>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-              {/* Before Column */}
-              <div className="p-5 bg-white space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                  <span className="text-xs font-semibold text-slate-600">Baseline (Before)</span>
-                  <span className="text-[11px] font-mono text-slate-400">BOUND</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x" style={{ borderColor: 'var(--border)' }}>
+              {/* Baseline (Before) */}
+              <div className="p-5 space-y-3.5">
+                <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: 'var(--border)' }}>
+                  <span className="text-xs font-semibold text-[#4A4A45]">Baseline (Bound)</span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#F2F1EE] text-[#4A4A45]">
+                    LATEST_BOUND
+                  </span>
                 </div>
+
                 <div>
-                  <div className="text-xs text-slate-500 font-medium">Total TIV</div>
-                  <div className="text-lg font-semibold text-slate-900 mt-0.5">
+                  <div className="text-[11px] font-medium text-[#7A7A74]">Total Insured Value</div>
+                  <div className="text-lg font-semibold text-[#1A1A18] tabular-nums mt-0.5">
                     {formatMoney(event.before.totalTiv)}
                   </div>
                 </div>
 
                 <div className="space-y-2 pt-2">
-                  <div className="text-xs font-medium text-slate-500">
-                    Locations ({event.before.locations.length})
+                  <div className="text-[11px] font-medium text-[#7A7A74] flex justify-between">
+                    <span>Locations ({event.before.locations.length})</span>
                   </div>
                   {event.before.locations.map((loc) => (
                     <div
                       key={loc.locationId}
-                      className="p-3 rounded border border-slate-200 bg-slate-50/60 space-y-1"
+                      className="p-3 rounded space-y-1"
+                      style={{
+                        backgroundColor: 'var(--surface-raised)',
+                        border: '1px solid var(--border)',
+                      }}
                     >
-                      <div className="flex items-center justify-between text-xs font-medium text-slate-900">
-                        <span>{loc.addressLine}</span>
-                        <span className="font-mono text-slate-400 text-[11px]">{loc.locationId}</span>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium text-[#1A1A18]">{loc.addressLine}</span>
+                        <span className="font-mono text-[#7A7A74] text-[10px]">{loc.locationId}</span>
                       </div>
-                      <div className="text-xs text-slate-600">
+                      <div className="text-[11px] text-[#7A7A74]">
                         {renderHazardSummary(loc)}
                       </div>
-                      <div className="text-xs font-semibold text-slate-800 pt-0.5">
+                      <div className="text-xs font-medium text-[#1A1A18] tabular-nums pt-0.5">
                         {formatMoney(loc.tiv)}
                       </div>
                     </div>
@@ -205,28 +256,29 @@ export function EventDetail(): React.ReactElement {
                 </div>
               </div>
 
-              {/* After Column */}
-              <div className="p-5 bg-slate-50/40 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-                  <span className="text-xs font-semibold text-slate-800">Candidate (After)</span>
-                  <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">PROPOSED</span>
+              {/* Candidate (After) */}
+              <div className="p-5 space-y-3.5" style={{ backgroundColor: 'var(--surface-raised)' }}>
+                <div className="flex items-center justify-between pb-2 border-b" style={{ borderColor: 'var(--border)' }}>
+                  <span className="text-xs font-semibold text-[#1A1A18]">Candidate (Proposed)</span>
+                  <span className="badge badge-low text-[10px]">
+                    SIGNAL_PROPOSED
+                  </span>
                 </div>
+
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500 font-medium">Candidate Total TIV</span>
+                    <span className="text-[11px] font-medium text-[#7A7A74]">Candidate Total TIV</span>
                     {tivDelta === 0 && (
-                      <span className="text-[11px] text-slate-500">
-                        No valuation drift
-                      </span>
+                      <span className="text-[10px] text-[#7A7A74]">No valuation drift</span>
                     )}
                   </div>
-                  <div className="text-lg font-semibold text-slate-900 mt-0.5">
+                  <div className="text-lg font-semibold text-[#1A1A18] tabular-nums mt-0.5">
                     {formatMoney(event.after.totalTiv)}
                   </div>
                 </div>
 
                 <div className="space-y-2 pt-2">
-                  <div className="text-xs font-medium text-slate-700">
+                  <div className="text-[11px] font-medium text-[#7A7A74]">
                     Locations ({event.after.locations.length})
                   </div>
                   {event.after.locations.map((loc) => {
@@ -242,39 +294,45 @@ export function EventDetail(): React.ReactElement {
                     return (
                       <div
                         key={loc.locationId}
-                        className={`p-3 rounded border space-y-1 ${
-                          isNew
-                            ? 'border-emerald-300 bg-emerald-50/40'
+                        className="p-3 rounded space-y-1 bg-white"
+                        style={{
+                          border: isNew
+                            ? '1px solid var(--green-border)'
                             : isTivChanged || isHazardChanged
-                              ? 'border-amber-300 bg-amber-50/40'
-                              : 'border-slate-200 bg-white'
-                        }`}
+                              ? '1px solid var(--risk-med-border)'
+                              : '1px solid var(--border)',
+                          backgroundColor: isNew
+                            ? 'var(--green-subtle)'
+                            : isTivChanged || isHazardChanged
+                              ? 'var(--risk-med-bg)'
+                              : '#ffffff',
+                        }}
                       >
-                        <div className="flex items-center justify-between text-xs font-medium text-slate-900">
-                          <span className="font-semibold">{loc.addressLine}</span>
-                          <div className="flex items-center gap-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-medium text-[#1A1A18]">{loc.addressLine}</span>
+                          <div className="flex items-center gap-1.5">
                             {isNew && (
-                              <span className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800">
-                                New location
+                              <span className="badge badge-low text-[10px]">
+                                New Location
                               </span>
                             )}
                             {isHazardChanged && (
-                              <span className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-amber-100 text-amber-800">
-                                Hazard shift
+                              <span className="badge badge-medium text-[10px]">
+                                Hazard Shift
                               </span>
                             )}
                             {isTivChanged && (
-                              <span className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-blue-100 text-blue-800">
-                                TIV drift
+                              <span className="badge badge-neutral text-[10px]">
+                                TIV Drift
                               </span>
                             )}
-                            <span className="font-mono text-slate-400 text-[11px]">{loc.locationId}</span>
+                            <span className="font-mono text-[#7A7A74] text-[10px]">{loc.locationId}</span>
                           </div>
                         </div>
-                        <div className="text-xs text-slate-600">
+                        <div className="text-[11px] text-[#7A7A74]">
                           {renderHazardSummary(loc)}
                         </div>
-                        <div className={`text-xs font-semibold pt-0.5 ${isTivChanged ? 'text-amber-900 font-bold' : 'text-slate-900'}`}>
+                        <div className="text-xs font-semibold text-[#1A1A18] tabular-nums pt-0.5">
                           {formatMoney(loc.tiv)}
                         </div>
                       </div>
@@ -285,44 +343,46 @@ export function EventDetail(): React.ReactElement {
             </div>
           </section>
 
-          {/* Rule Breakdown Card */}
-          <section className="eds-card overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+          {/* Rule Breakdown Section */}
+          <section className="panel overflow-hidden bg-white">
+            <div
+              className="px-5 py-3 flex items-center justify-between"
+              style={{
+                backgroundColor: 'var(--surface-raised)',
+                borderBottom: '1px solid var(--border)',
+              }}
+            >
               <div>
-                <h2 className="font-semibold text-sm text-slate-900">
+                <h2 className="text-xs font-semibold tracking-tight text-[#1A1A18]">
                   Deterministic Rule Receipts
                 </h2>
-                <p className="text-xs text-slate-500">
-                  Evaluated against server rules.yaml
+                <p className="text-[11px] text-[#7A7A74]">
+                  Evaluated deterministically against server rules.yaml
                 </p>
               </div>
-              <span className="px-2.5 py-0.5 rounded text-xs font-semibold bg-slate-900 text-white">
-                Total: {event.score} pts
+              <span className="badge badge-neutral font-mono font-medium text-xs">
+                Score: {event.score} pts
               </span>
             </div>
 
-            <table className="eds-table">
+            <table className="data-table">
               <thead>
                 <tr>
-                  <th>Rule ID</th>
-                  <th>Points</th>
+                  <th style={{ width: '130px' }}>Rule ID</th>
+                  <th style={{ width: '90px' }}>Impact</th>
                   <th>Evaluation Detail</th>
                 </tr>
               </thead>
               <tbody>
                 {event.ruleBreakdown.map((rule) => (
                   <tr key={rule.ruleId}>
-                    <td>
-                      <span className="font-mono text-xs font-semibold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded">
-                        {rule.ruleId}
-                      </span>
+                    <td className="font-mono text-xs font-medium text-[#1A1A18]">
+                      {rule.ruleId}
                     </td>
-                    <td>
-                      <span className="font-semibold text-xs text-slate-900">
-                        +{rule.points}
-                      </span>
+                    <td className="font-medium text-[#2D6A4F] tabular-nums">
+                      +{rule.points} pts
                     </td>
-                    <td className="text-xs text-slate-700">
+                    <td className="text-xs text-[#4A4A45] leading-relaxed">
                       {rule.reason}
                     </td>
                   </tr>
@@ -330,49 +390,60 @@ export function EventDetail(): React.ReactElement {
               </tbody>
             </table>
 
-            <div className="p-5 bg-slate-50 border-t border-slate-200 space-y-1.5">
-              <div className="text-xs font-medium text-slate-500">Underwriting Assessment</div>
-              <p className="text-xs text-slate-800 leading-relaxed">
+            {/* Underwriting assessment block */}
+            <div
+              className="p-5 space-y-2 border-t"
+              style={{
+                backgroundColor: 'var(--surface-raised)',
+                borderColor: 'var(--border)',
+              }}
+            >
+              <div className="text-[11px] font-semibold text-[#4A4A45] uppercase tracking-wider">
+                Underwriting Assessment
+              </div>
+              <p className="text-xs text-[#4A4A45] leading-relaxed">
                 {event.whyItMatters}
               </p>
-              <div className="pt-1 text-xs text-slate-600">
-                Recommended Action: <strong className="text-slate-900">{event.recommendedAction}</strong>
+              <div className="text-xs text-[#7A7A74] pt-1">
+                Recommended Action: <strong className="text-[#1A1A18] font-medium">{event.recommendedAction}</strong>
               </div>
             </div>
           </section>
         </div>
 
-        {/* Right Column: Actions */}
+        {/* Right Column: Actions Terminal */}
         <aside className="space-y-6">
-          <section className="eds-card p-5 space-y-3.5 sticky top-20">
-            <div>
-              <div className="text-xs font-medium text-slate-500">Action Terminal</div>
-              <h3 className="font-semibold text-sm text-slate-900 mt-0.5">
-                Underwriter Decision
+          <section className="panel p-5 bg-white space-y-4 sticky top-6">
+            <div className="pb-3 border-b" style={{ borderColor: 'var(--border)' }}>
+              <div className="text-[11px] font-medium text-[#7A7A74] uppercase tracking-wider">
+                Action Terminal
+              </div>
+              <h3 className="text-sm font-semibold tracking-tight text-[#1A1A18] mt-1">
+                Underwriting Decision
               </h3>
-              <p className="text-xs text-slate-500">
-                Status: <strong className="text-slate-800">{event.status.replace(/_/g, ' ').toLowerCase()}</strong>
+              <p className="text-xs text-[#7A7A74] mt-0.5">
+                Current status: <strong className="text-[#1A1A18] font-medium capitalize">{event.status.replace(/_/g, ' ').toLowerCase()}</strong>
               </p>
             </div>
 
-            <div className="space-y-2 pt-1">
+            <div className="space-y-2">
               {canStartReview && (
                 <button
                   type="button"
                   onClick={() => actions.review.mutate(eventId)}
                   disabled={actions.review.isPending}
-                  className="btn-primary w-full justify-center disabled:opacity-50"
+                  className="btn btn-primary w-full justify-center text-xs"
                 >
-                  {actions.review.isPending ? 'Starting...' : 'Open & Start Review'}
+                  {actions.review.isPending ? 'Starting Review...' : 'Open & Start Review'}
                 </button>
               )}
 
               {canDecide && (
-                <>
+                <div className="space-y-2">
                   <button
                     type="button"
                     onClick={() => setModal('ACCEPT')}
-                    className="w-full py-2 px-3 text-xs font-semibold rounded bg-emerald-700 text-white hover:bg-emerald-800 transition-colors cursor-pointer"
+                    className="btn btn-primary w-full justify-center text-xs"
                   >
                     Accept Exposure (Create Snapshot)
                   </button>
@@ -380,7 +451,7 @@ export function EventDetail(): React.ReactElement {
                   <button
                     type="button"
                     onClick={() => setModal('REQUEST_INFO')}
-                    className="btn-secondary w-full justify-center"
+                    className="btn btn-secondary w-full justify-center text-xs"
                   >
                     Request Information
                   </button>
@@ -388,11 +459,11 @@ export function EventDetail(): React.ReactElement {
                   <button
                     type="button"
                     onClick={() => setModal('DISMISS')}
-                    className="w-full py-2 px-3 text-xs font-medium rounded border border-slate-200 text-slate-600 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
+                    className="btn btn-ghost w-full justify-center text-xs text-[#7A7A74] hover:text-[#B42318]"
                   >
                     Dismiss Event
                   </button>
-                </>
+                </div>
               )}
 
               {canReopen && (
@@ -400,42 +471,57 @@ export function EventDetail(): React.ReactElement {
                   type="button"
                   onClick={() => actions.reopen.mutate(eventId)}
                   disabled={actions.reopen.isPending}
-                  className="btn-primary w-full justify-center disabled:opacity-50"
+                  className="btn btn-primary w-full justify-center text-xs"
                 >
                   {actions.reopen.isPending ? 'Reopening...' : 'Reopen In-Review'}
                 </button>
               )}
 
               {event.status === 'CLOSED' && (
-                <div className="p-3 rounded bg-slate-50 border border-slate-200 text-center text-xs text-slate-600">
-                  Event closed and verified in audit trail.
+                <div
+                  className="p-3 text-center text-xs text-[#7A7A74] rounded"
+                  style={{
+                    backgroundColor: 'var(--surface-raised)',
+                    border: '1px solid var(--border)',
+                  }}
+                >
+                  Event closed and recorded in audit ledger.
                 </div>
               )}
             </div>
 
             {(actions.review.error || actions.reopen.error || actions.decide.error) && (
-              <div className="p-2.5 rounded bg-red-50 border border-red-200 text-xs text-red-700">
+              <div
+                className="p-3 text-xs leading-relaxed rounded"
+                style={{
+                  backgroundColor: 'var(--risk-high-bg)',
+                  color: 'var(--risk-high-text)',
+                  border: '1px solid var(--risk-high-border)',
+                }}
+              >
                 {(actions.review.error || actions.reopen.error || actions.decide.error)?.message}
               </div>
             )}
-          </section>
 
-          {/* Evidence Card */}
-          <section className="eds-card p-5 space-y-2 text-xs">
-            <div className="text-xs font-medium text-slate-500 mb-1">Signal Evidence</div>
-            <div className="flex justify-between py-1 border-b border-slate-100">
-              <span className="text-slate-500">Ingested Signals</span>
-              <span className="font-semibold text-slate-800">{event.signalIds.length} source records</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-slate-100">
-              <span className="text-slate-500">Severity</span>
-              <span className="font-semibold text-slate-800">{event.severity}</span>
-            </div>
-            <div className="flex justify-between py-1">
-              <span className="text-slate-500">Portfolio Status</span>
-              <span className={`font-semibold ${event.portfolioBreach ? 'text-red-600' : 'text-emerald-700'}`}>
-                {event.portfolioBreach ? 'Cap Breach' : 'Within Cap'}
-              </span>
+            {/* Signal Evidence metadata */}
+            <div className="pt-3 border-t space-y-2 text-xs" style={{ borderColor: 'var(--border)' }}>
+              <div className="text-[11px] font-medium text-[#7A7A74] uppercase tracking-wider mb-1">
+                Signal Evidence
+              </div>
+              <div className="flex justify-between py-1 border-b" style={{ borderColor: 'var(--border)' }}>
+                <span className="text-[#7A7A74]">Ingested Signals</span>
+                <span className="font-mono text-[#1A1A18] font-medium">{event.signalIds.length} source records</span>
+              </div>
+              <div className="flex justify-between py-1 border-b" style={{ borderColor: 'var(--border)' }}>
+                <span className="text-[#7A7A74]">Severity</span>
+                <span className="font-medium text-[#1A1A18]">{event.severity}</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-[#7A7A74]">Portfolio Status</span>
+                <span className={`font-medium ${event.portfolioBreach ? 'text-[#B42318]' : 'text-[#2D6A4F]'}`}>
+                  {event.portfolioBreach ? 'Cap Breach' : 'Within Cap'}
+                </span>
+              </div>
             </div>
           </section>
         </aside>
