@@ -13,6 +13,7 @@ import { Simulator } from '@/pages/Simulator';
 import { Audit } from '@/pages/Audit';
 import { Rules } from '@/pages/Rules';
 import { EventDetail } from '@/pages/EventDetail';
+import { Registry } from '@/pages/Registry';
 
 /** Guard: redirect to /login if no user session */
 function RequireAuth({ children }: { children: React.ReactElement }): React.ReactElement {
@@ -39,6 +40,7 @@ function AppShell(): React.ReactElement {
             <Route path="/simulator"       element={<Simulator />} />
             <Route path="/audit"           element={<Audit />} />
             <Route path="/rules"           element={<Rules />} />
+            <Route path="/registry"        element={<Registry />} />
             <Route
               path="*"
               element={

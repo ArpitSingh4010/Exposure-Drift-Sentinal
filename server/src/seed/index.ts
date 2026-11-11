@@ -24,6 +24,8 @@ import { RuleVersion } from '../models/RuleVersion.js';
 import { Signal } from '../models/Signal.js';
 import { Product } from '../models/Product.js';
 import { HazardLookup } from '../models/HazardLookup.js';
+import { Company } from '../models/Company.js';
+import { VERIFIED_INDIAN_INSURERS } from './indianInsurersData.js';
 import {
   PRODUCT_CATALOGUE,
   DEMO_ACCOUNTS_H6,
@@ -121,128 +123,125 @@ const USERS = [
 
 // ── Accounts ──────────────────────────────────────────────────────────────
 const ACCOUNTS = [
-  // Demo account
   {
     accountId: 'ACC-001',
-    name: 'Northwind Fabrication',
-    industry: 'Manufacturing',
-    aliases: ['Northwind Fab', 'NW Fabrication LLC', 'Northwind Fabrications'],
+    name: 'ICICI Lombard General Insurance Company Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['ICICI Lombard', 'ICICI Lombard GIC Ltd', 'ICICI General Insurance', 'ICICI Lombard GIC'],
   },
-  // Ambiguous near-duplicates (tests confidence gate)
   {
     accountId: 'ACC-002',
-    name: 'Acme Manufacturing',
-    industry: 'Manufacturing',
-    aliases: ['ACME Mfg Pvt Ltd', 'Acme Mfg.', 'ACME Manufacturing Corp'],
+    name: 'Bajaj Allianz General Insurance Company Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['Bajaj Allianz', 'BAGIC', 'Bajaj Allianz General', 'Bajaj Allianz General Insurance'],
   },
   {
     accountId: 'ACC-003',
-    name: 'Acme Industrial',
-    industry: 'Manufacturing',
-    aliases: ['Acme Industries', 'ACME Industrial LLC'],
+    name: 'HDFC ERGO General Insurance Company Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['HDFC ERGO', 'HDFC ERGO GIC', 'HDFC General Insurance', 'HDFC ERGO General'],
   },
   {
     accountId: 'ACC-004',
-    name: 'Ridgeline Properties',
-    industry: 'Real Estate',
-    aliases: ['Ridgeline Props', 'Ridgeline Real Estate Group'],
+    name: 'Tata AIG General Insurance Company Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['Tata AIG', 'TAGIC', 'Tata AIG General', 'Tata-AIG General Insurance'],
   },
   {
     accountId: 'ACC-005',
-    name: 'BlueSky Logistics',
-    industry: 'Logistics',
-    aliases: ['Blue Sky Logistics LLC', 'BSL Inc'],
+    name: 'SBI General Insurance Company Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['SBI General', 'SBIG', 'SBI General Ins Co', 'SBI General Insurance'],
   },
   {
     accountId: 'ACC-006',
-    name: 'Coastal Ventures',
-    industry: 'Real Estate',
-    aliases: ['Coastal Venture Group', 'CV Real Estate'],
+    name: 'Reliance General Insurance Company Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['Reliance General', 'RGIC', 'Reliance General Insurance', 'Reliance General Ins'],
   },
   {
     accountId: 'ACC-007',
-    name: 'Heartland Foods',
-    industry: 'Food & Beverage',
-    aliases: ['Heartland Food Corp', 'HLF Industries'],
+    name: 'Liberty General Insurance Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['Liberty General', 'Liberty Insurance India', 'Liberty General Ins Ltd', 'Liberty GIC'],
   },
   {
     accountId: 'ACC-008',
-    name: 'Summit Tech',
-    industry: 'Technology',
-    aliases: ['Summit Technology Inc', 'SummitTech LLC'],
+    name: 'Raheja QBE General Insurance Company Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['Raheja QBE', 'RQBE', 'Raheja QBE Insurance', 'Raheja QBE General'],
   },
   {
     accountId: 'ACC-009',
-    name: 'Pacific Coast Properties',
-    industry: 'Real Estate',
-    aliases: ['Pacific Properties LLC', 'PCP Real Estate'],
+    name: 'Universal Sompo General Insurance Company Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['Universal Sompo', 'USGIC', 'Universal Sompo General', 'Universal Sompo GIC'],
   },
-  // Pacific Properties LLC is also an alias of ACC-009 — near-match with ACC-010
   {
     accountId: 'ACC-010',
-    name: 'Pacific Properties',
-    industry: 'Real Estate',
-    aliases: ['Pacific Property Group', 'PPG Inc'],
+    name: 'Royal Sundaram General Insurance Co. Limited',
+    industry: 'Insurance / Financial Services',
+    aliases: ['Royal Sundaram', 'RSGIC', 'Royal Sundaram General', 'Royal Sundaram GIC'],
   },
   {
     accountId: 'ACC-011',
-    name: 'Granite Industrial',
-    industry: 'Manufacturing',
-    aliases: ['Granite Industries', 'GI Corp'],
+    name: 'ICICI Lombard Commercial Property Portfolio',
+    industry: 'Insurance / Commercial Lines',
+    aliases: ['ICICI Lombard Commercial Risk', 'ICICI Lombard Property Hub'],
   },
   {
     accountId: 'ACC-012',
-    name: 'Lakeside Warehousing',
-    industry: 'Logistics',
-    aliases: ['Lakeside Storage', 'LSW LLC'],
+    name: 'Bajaj Allianz Corporate Risk Division',
+    industry: 'Insurance / Corporate Lines',
+    aliases: ['Bajaj Allianz Industrial Risk', 'BAGIC Corporate Hub'],
   },
   {
     accountId: 'ACC-013',
-    name: 'Delta Chemicals',
-    industry: 'Chemical',
-    aliases: ['Delta Chemical Corp', 'DCC Industries'],
+    name: 'HDFC ERGO Enterprise Property Underwriting',
+    industry: 'Insurance / Commercial Lines',
+    aliases: ['HDFC ERGO Corporate Asset Hub', 'HDFC ERGO Commercial Underwriting'],
   },
   {
     accountId: 'ACC-014',
-    name: 'Maplewood Construction',
-    industry: 'Construction',
-    aliases: ['Maplewood Builders', 'MWC LLC'],
+    name: 'Tata AIG Industrial & Catastrophe Operations',
+    industry: 'Insurance / Industrial Lines',
+    aliases: ['Tata AIG Catastrophe Property', 'TAGIC Industrial Hub'],
   },
   {
     accountId: 'ACC-015',
-    name: 'Ironside Steel',
-    industry: 'Manufacturing',
-    aliases: ['Ironside Steel Corp', 'ISS Inc'],
+    name: 'SBI General Commercial Lines Portfolio',
+    industry: 'Insurance / Commercial Lines',
+    aliases: ['SBI General Corporate Risk', 'SBIG Property Division'],
   },
   {
     accountId: 'ACC-016',
-    name: 'Verde Farms',
-    industry: 'Agriculture',
-    aliases: ['Verde Agriculture', 'VF Holdings'],
+    name: 'Reliance General Corporate Risk Syndicate',
+    industry: 'Insurance / Commercial Lines',
+    aliases: ['Reliance General Asset Underwriting', 'RGIC Corporate Risk'],
   },
   {
     accountId: 'ACC-017',
-    name: 'Crestview Hotels',
-    industry: 'Hospitality',
-    aliases: ['Crestview Hospitality Group', 'CVH LLC'],
+    name: 'Liberty General Specialty Property Division',
+    industry: 'Insurance / Specialty Lines',
+    aliases: ['Liberty General Commercial Lines', 'Liberty Specialty Risk'],
   },
   {
     accountId: 'ACC-018',
-    name: 'Apex Retail',
-    industry: 'Retail',
-    aliases: ['Apex Retail Group', 'ARG Inc'],
+    name: 'Raheja QBE Commercial Asset Group',
+    industry: 'Insurance / Commercial Lines',
+    aliases: ['Raheja QBE Specialty Property', 'RQBE Commercial Risk'],
   },
   {
     accountId: 'ACC-019',
-    name: 'Northern Lights Energy',
-    industry: 'Energy',
-    aliases: ['NL Energy Corp', 'Northern Lights Power'],
+    name: 'Universal Sompo Industrial Underwriting',
+    industry: 'Insurance / Industrial Lines',
+    aliases: ['Universal Sompo Asset Hub', 'USGIC Corporate Underwriting'],
   },
   {
     accountId: 'ACC-020',
-    name: 'Valleyview Medical',
-    industry: 'Healthcare',
-    aliases: ['Valleyview Health Systems', 'VVM Corp'],
+    name: 'Royal Sundaram Commercial Asset Operations',
+    industry: 'Insurance / Commercial Lines',
+    aliases: ['Royal Sundaram Corporate Lines', 'RSGIC Commercial Hub'],
   },
 ] as const;
 
@@ -568,6 +567,7 @@ for (let i = 0; i < ALL_LOCATIONS.length; i++) {
 export async function ensureIndexes(): Promise<void> {
   await Promise.all([
     User.syncIndexes(),
+    Company.syncIndexes(),
     Account.syncIndexes(),
     Policy.syncIndexes(),
     Location.syncIndexes(),
@@ -591,6 +591,7 @@ export async function seedDb(): Promise<void> {
   // ── 1. Delete all (not in a transaction per amendment #2) ──────────────
   await Promise.all([
     User.deleteMany({}),
+    Company.deleteMany({}),
     Account.deleteMany({}),
     Policy.deleteMany({}),
     Location.deleteMany({}),
@@ -613,6 +614,7 @@ export async function seedDb(): Promise<void> {
 
   // ── 3. Insert base data ────────────────────────────────────────────────
   await User.insertMany(USERS);
+  await Company.insertMany(VERIFIED_INDIAN_INSURERS);
   await Account.insertMany([...ACCOUNTS, ...DEMO_ACCOUNTS_H6]);
   await FloodLookup.insertMany(FLOOD_LOOKUP);
   await Product.insertMany(PRODUCT_CATALOGUE);

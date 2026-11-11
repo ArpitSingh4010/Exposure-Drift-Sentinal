@@ -160,13 +160,13 @@ export const PRODUCT_CATALOGUE: SeedProduct[] = [
 // ── 2. Demo Accounts (7 accounts for the 7 new hazard demo policies) ──────
 
 export const DEMO_ACCOUNTS_H6 = [
-  { accountId: 'ACC-201', name: 'Fault Line Foods',       industry: 'Food Production', aliases: ['Fault Line Food Corp', 'FLF Inc'] },
-  { accountId: 'ACC-202', name: 'Harbor Gate Logistics',   industry: 'Logistics',       aliases: ['Harbor Gate Log', 'HGL Corp'] },
-  { accountId: 'ACC-203', name: 'Gulf Crest Marine',       industry: 'Marine',          aliases: ['Gulf Crest Marine LLC', 'GCM Inc'] },
-  { accountId: 'ACC-204', name: 'Redwood Timber Works',    industry: 'Forestry',        aliases: ['Redwood Timber', 'RTW LLC'] },
-  { accountId: 'ACC-205', name: 'Ridgeback Quarry',        industry: 'Mining',          aliases: ['Ridgeback Quarry Corp', 'RQ Inc'] },
-  { accountId: 'ACC-206', name: 'Prairie Grain Co-op',     industry: 'Agriculture',     aliases: ['Prairie Grain', 'PGC Co-op'] },
-  { accountId: 'ACC-207', name: 'Great Plains Packaging',  industry: 'Packaging',       aliases: ['Great Plains Pkg', 'GPP LLC'] },
+  { accountId: 'ACC-201', name: 'ICICI Lombard Seismic Risk Portfolio',     industry: 'Insurance / Catastrophe Risk', aliases: ['ICICI Lombard Earthquake Hub', 'ICICI Lombard Seismic Underwriting'] },
+  { accountId: 'ACC-202', name: 'Tata AIG Coastal & Tsunami Inundation Hub', industry: 'Insurance / Marine & Coastal',   aliases: ['Tata AIG Coastal Inundation', 'TAGIC Tsunami Portfolio'] },
+  { accountId: 'ACC-203', name: 'Bajaj Allianz Severe Cyclone Syndicate',    industry: 'Insurance / Windstorm Risk',   aliases: ['Bajaj Allianz Named Storm Hub', 'BAGIC Hurricane Division'] },
+  { accountId: 'ACC-204', name: 'HDFC ERGO Wildfire Asset Protection Hub',   industry: 'Insurance / Agro & Forestry',  aliases: ['HDFC ERGO Wildfire Underwriting', 'HDFC ERGO Forestry Risk'] },
+  { accountId: 'ACC-205', name: 'SBI General Landslide & Terrestrial Hub',   industry: 'Insurance / Earth Movement',   aliases: ['SBI General Landslide Division', 'SBIG Terrestrial Risk'] },
+  { accountId: 'ACC-206', name: 'Reliance General Tornado & Windstorm Risk',  industry: 'Insurance / Convective Storm', aliases: ['Reliance General Tornado Hub', 'RGIC Windstorm Portfolio'] },
+  { accountId: 'ACC-207', name: 'Liberty General Severe Convective Hub',      industry: 'Insurance / Severe Storm',     aliases: ['Liberty General Convective Storm', 'Liberty Severe Storm Portfolio'] },
 ];
 
 // ── 3. 7 Demo Policies (Fixed IDs per docs/MULTIHAZARD_SPEC.md 5.3) ───────

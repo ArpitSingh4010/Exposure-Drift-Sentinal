@@ -237,3 +237,82 @@ export interface SimulatorResult {
 export function resetDemo(userId: string | null): Promise<{ message: string }> {
   return request<{ message: string }>('/admin/reset-demo', userId, { method: 'POST' });
 }
+
+export interface CompanyAddress {
+  streetAddress: string;
+  buildingLocality: string;
+  city: string;
+  state: string;
+  postalCode: string; // 6-digit Indian PIN code
+  country: 'India';
+  formattedAddress: string;
+  sourceUrl: string;
+}
+
+export interface CompanyRecord {
+  _id?: string;
+  companyId: string;
+  legalName: string;
+  commonName: string;
+  parentCompany: string | null;
+  insuranceCategory: string;
+  irdaiRegistrationNo: string | null;
+  officialWebsite: string;
+  registeredOffice: CompanyAddress;
+  headquarters: CompanyAddress;
+  guidewireProducts: string[];
+  guidewireEvidence: string;
+  guidewireSourceUrl: string;
+  addressSourceUrl: string;
+  lastVerifiedDate: string;
+  verificationStatus: 'VERIFIED' | 'EXCLUDED' | 'PENDING';
+  aliases: string[];
+}
+
+export interface CompanyMatchResult {
+  input: {
+    name?: string;
+    address?: string;
+    postalCode?: string;
+  };
+  matchedCompany: CompanyRecord | null;
+  scores: {
+    nameSimilarity: number;
+    addressSimilarity: number;
+    postalCodeMatch: number;
+    finalConfidence: number;
+  };
+  classification: 'HIGH_CONFIDENCE' | 'PROBABLE_MATCH' | 'VERIFICATION_REQUIRED';
+  verificationRequired: boolean;
+  explanation: string;
+  rankedCandidates: Array<{
+    companyId: string;
+    legalName: string;
+    commonName: string;
+    scores: {
+      nameSimilarity: number;
+      addressSimilarity: number;
+      postalCodeMatch: number;
+      finalConfidence: number;
+    };
+    classification: 'HIGH_CONFIDENCE' | 'PROBABLE_MATCH' | 'VERIFICATION_REQUIRED';
+  }>;
+}
+
+export function fetchCompanies(userId?: string | null): Promise<CompanyRecord[]> {
+  return request<CompanyRecord[]>('/companies', userId ?? null);
+}
+
+export function fetchCompany(companyId: string, userId?: string | null): Promise<CompanyRecord> {
+  return request<CompanyRecord>(`/companies/${companyId}`, userId ?? null);
+}
+
+export function matchCompany(
+  input: { name?: string; address?: string; postalCode?: string },
+  userId?: string | null,
+): Promise<CompanyMatchResult> {
+  return request<CompanyMatchResult>('/companies/match', userId ?? null, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}

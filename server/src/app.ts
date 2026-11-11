@@ -12,6 +12,7 @@ import { portfolioRouter } from './routes/portfolio.js';
 import { auditRouter } from './routes/audit.js';
 import { rulesRouter } from './routes/rules.js';
 import { simulatorRouter } from './routes/simulator.js';
+import { companiesRouter } from './routes/companies.js';
 import { logger } from './config/logger.js';
 
 /**
@@ -64,6 +65,7 @@ export function createApp(): express.Application {
   app.use('/audit', auditRouter);
   app.use('/rules', rulesRouter);
   app.use('/simulator', simulatorRouter);
+  app.use('/companies', companiesRouter);
 
   // ── Error handler (must be last) ──────────────────────────────────────────
   app.use(errorHandler);

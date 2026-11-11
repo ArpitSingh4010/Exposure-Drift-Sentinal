@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: 'Simulator',   path: '/simulator' },
   { label: 'Audit',        path: '/audit' },
   { label: 'Rules',        path: '/rules' },
+  { label: 'Registry',     path: '/registry' },
 ];
 
 export const USERS = [
