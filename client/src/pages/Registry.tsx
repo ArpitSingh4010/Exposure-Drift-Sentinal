@@ -226,8 +226,8 @@ export function Registry(): React.ReactElement {
         )}
 
         {/* Input Form */}
-        <form onSubmit={handleRunMatch} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-          <div className="md:col-span-4">
+        <form onSubmit={handleRunMatch} className="flex flex-col lg:flex-row gap-3 items-end">
+          <div className="flex-1 w-full lg:w-auto min-w-0">
             <label className="block text-xs font-medium text-[#4A4A45] mb-1">
               Incoming Insurer Name <span className="text-[#7A7A74] font-normal">(60% weight)</span>
             </label>
@@ -240,7 +240,7 @@ export function Registry(): React.ReactElement {
             />
           </div>
 
-          <div className="md:col-span-5">
+          <div className="flex-1 w-full lg:w-auto min-w-0">
             <label className="block text-xs font-medium text-[#4A4A45] mb-1">
               Address Line / Locality <span className="text-[#7A7A74] font-normal">(30% weight)</span>
             </label>
@@ -253,7 +253,7 @@ export function Registry(): React.ReactElement {
             />
           </div>
 
-          <div className="md:col-span-1.5">
+          <div className="w-full lg:w-28 flex-shrink-0">
             <label className="block text-xs font-medium text-[#4A4A45] mb-1">
               Indian PIN <span className="text-[#7A7A74] font-normal">(10%)</span>
             </label>
@@ -267,18 +267,18 @@ export function Registry(): React.ReactElement {
             />
           </div>
 
-          <div className="md:col-span-1.5 flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0 w-full lg:w-auto justify-end">
             <button
               type="submit"
               disabled={matchMutation.isPending || (!inputName && !inputAddress && !inputPin)}
-              className="btn btn-primary text-xs w-full py-2"
+              className="btn btn-primary text-xs px-4 py-2 whitespace-nowrap shadow-sm font-medium"
             >
               {matchMutation.isPending ? 'Matching...' : 'Evaluate Match'}
             </button>
             <button
               type="button"
               onClick={handleResetMatch}
-              className="btn btn-secondary text-xs px-2.5 py-2"
+              className="btn btn-secondary text-xs px-3 py-2 whitespace-nowrap"
               title="Clear input"
             >
               Clear
