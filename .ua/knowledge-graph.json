@@ -1,0 +1,1134 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "exposure-drift-sentinel",
+    "languages": [
+      "TypeScript",
+      "JavaScript",
+      "HTML",
+      "CSS",
+      "YAML"
+    ],
+    "frameworks": [
+      "React",
+      "Express",
+      "Vite",
+      "Tailwind CSS",
+      "Mongoose",
+      "TanStack Query",
+      "Recharts"
+    ],
+    "description": "Continuous commercial property underwriting exposure and risk intelligence platform integrating with Guidewire InsuranceSuite and external hazard feeds.",
+    "analyzedAt": "2026-11-11T19:12:03.213Z",
+    "gitCommitHash": "4f1b92cfce9d824bf0464b121b8100c0eb8fbe98"
+  },
+  "nodes": [
+    {
+      "id": "client/src/api/client.ts",
+      "label": "client.ts",
+      "type": "file",
+      "filePath": "client/src/api/client.ts",
+      "summary": "Source module with 319 lines of code.",
+      "lineRange": [
+        1,
+        319
+      ]
+    },
+    {
+      "id": "client/src/App.tsx",
+      "label": "App.tsx",
+      "type": "file",
+      "filePath": "client/src/App.tsx",
+      "summary": "Source module with 88 lines of code.",
+      "lineRange": [
+        1,
+        88
+      ]
+    },
+    {
+      "id": "client/src/components/DecisionModal.test.tsx",
+      "label": "DecisionModal.test.tsx",
+      "type": "component",
+      "filePath": "client/src/components/DecisionModal.test.tsx",
+      "summary": "Reusable React UI component for DecisionModal.test.",
+      "lineRange": [
+        1,
+        24
+      ]
+    },
+    {
+      "id": "client/src/components/DecisionModal.tsx",
+      "label": "DecisionModal.tsx",
+      "type": "component",
+      "filePath": "client/src/components/DecisionModal.tsx",
+      "summary": "Reusable React UI component for DecisionModal.",
+      "lineRange": [
+        1,
+        184
+      ]
+    },
+    {
+      "id": "client/src/components/layout/BottomNav.tsx",
+      "label": "BottomNav.tsx",
+      "type": "component",
+      "filePath": "client/src/components/layout/BottomNav.tsx",
+      "summary": "Reusable React UI component for BottomNav.",
+      "lineRange": [
+        1,
+        101
+      ]
+    },
+    {
+      "id": "client/src/components/layout/Breadcrumbs.tsx",
+      "label": "Breadcrumbs.tsx",
+      "type": "component",
+      "filePath": "client/src/components/layout/Breadcrumbs.tsx",
+      "summary": "Reusable React UI component for Breadcrumbs.",
+      "lineRange": [
+        1,
+        30
+      ]
+    },
+    {
+      "id": "client/src/components/layout/Footer.tsx",
+      "label": "Footer.tsx",
+      "type": "component",
+      "filePath": "client/src/components/layout/Footer.tsx",
+      "summary": "Reusable React UI component for Footer.",
+      "lineRange": [
+        1,
+        16
+      ]
+    },
+    {
+      "id": "client/src/components/layout/Sidebar.tsx",
+      "label": "Sidebar.tsx",
+      "type": "component",
+      "filePath": "client/src/components/layout/Sidebar.tsx",
+      "summary": "Reusable React UI component for Sidebar.",
+      "lineRange": [
+        1,
+        251
+      ]
+    },
+    {
+      "id": "client/src/components/layout/TopBar.tsx",
+      "label": "TopBar.tsx",
+      "type": "component",
+      "filePath": "client/src/components/layout/TopBar.tsx",
+      "summary": "Reusable React UI component for TopBar.",
+      "lineRange": [
+        1,
+        274
+      ]
+    },
+    {
+      "id": "client/src/components/SeverityChip.test.tsx",
+      "label": "SeverityChip.test.tsx",
+      "type": "component",
+      "filePath": "client/src/components/SeverityChip.test.tsx",
+      "summary": "Reusable React UI component for SeverityChip.test.",
+      "lineRange": [
+        1,
+        9
+      ]
+    },
+    {
+      "id": "client/src/components/SeverityChip.tsx",
+      "label": "SeverityChip.tsx",
+      "type": "component",
+      "filePath": "client/src/components/SeverityChip.tsx",
+      "summary": "Reusable React UI component for SeverityChip.",
+      "lineRange": [
+        1,
+        26
+      ]
+    },
+    {
+      "id": "client/src/hooks/useApi.ts",
+      "label": "useApi.ts",
+      "type": "file",
+      "filePath": "client/src/hooks/useApi.ts",
+      "summary": "Source module with 100 lines of code.",
+      "lineRange": [
+        1,
+        100
+      ]
+    },
+    {
+      "id": "client/src/hooks/useUserStore.tsx",
+      "label": "useUserStore.tsx",
+      "type": "file",
+      "filePath": "client/src/hooks/useUserStore.tsx",
+      "summary": "Source module with 45 lines of code.",
+      "lineRange": [
+        1,
+        45
+      ]
+    },
+    {
+      "id": "client/src/main.tsx",
+      "label": "main.tsx",
+      "type": "file",
+      "filePath": "client/src/main.tsx",
+      "summary": "Source module with 23 lines of code.",
+      "lineRange": [
+        1,
+        23
+      ]
+    },
+    {
+      "id": "client/src/pages/Audit.tsx",
+      "label": "Audit.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/Audit.tsx",
+      "summary": "Top-level React application page view for Audit.",
+      "lineRange": [
+        1,
+        198
+      ]
+    },
+    {
+      "id": "client/src/pages/Desktop.tsx",
+      "label": "Desktop.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/Desktop.tsx",
+      "summary": "Top-level React application page view for Desktop.",
+      "lineRange": [
+        1,
+        387
+      ]
+    },
+    {
+      "id": "client/src/pages/EventDetail.tsx",
+      "label": "EventDetail.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/EventDetail.tsx",
+      "summary": "Top-level React application page view for EventDetail.",
+      "lineRange": [
+        1,
+        542
+      ]
+    },
+    {
+      "id": "client/src/pages/Login.tsx",
+      "label": "Login.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/Login.tsx",
+      "summary": "Top-level React application page view for Login.",
+      "lineRange": [
+        1,
+        257
+      ]
+    },
+    {
+      "id": "client/src/pages/Policies.tsx",
+      "label": "Policies.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/Policies.tsx",
+      "summary": "Top-level React application page view for Policies.",
+      "lineRange": [
+        1,
+        402
+      ]
+    },
+    {
+      "id": "client/src/pages/Portfolio.tsx",
+      "label": "Portfolio.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/Portfolio.tsx",
+      "summary": "Top-level React application page view for Portfolio.",
+      "lineRange": [
+        1,
+        441
+      ]
+    },
+    {
+      "id": "client/src/pages/Products.tsx",
+      "label": "Products.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/Products.tsx",
+      "summary": "Top-level React application page view for Products.",
+      "lineRange": [
+        1,
+        251
+      ]
+    },
+    {
+      "id": "client/src/pages/Registry.tsx",
+      "label": "Registry.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/Registry.tsx",
+      "summary": "Top-level React application page view for Registry.",
+      "lineRange": [
+        1,
+        746
+      ]
+    },
+    {
+      "id": "client/src/pages/Rules.tsx",
+      "label": "Rules.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/Rules.tsx",
+      "summary": "Top-level React application page view for Rules.",
+      "lineRange": [
+        1,
+        409
+      ]
+    },
+    {
+      "id": "client/src/pages/Simulator.tsx",
+      "label": "Simulator.tsx",
+      "type": "component",
+      "filePath": "client/src/pages/Simulator.tsx",
+      "summary": "Top-level React application page view for Simulator.",
+      "lineRange": [
+        1,
+        543
+      ]
+    },
+    {
+      "id": "client/src/test/setup.ts",
+      "label": "setup.ts",
+      "type": "file",
+      "filePath": "client/src/test/setup.ts",
+      "summary": "Source module with 1 lines of code.",
+      "lineRange": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "server/src/app.ts",
+      "label": "app.ts",
+      "type": "file",
+      "filePath": "server/src/app.ts",
+      "summary": "Source module with 75 lines of code.",
+      "lineRange": [
+        1,
+        75
+      ]
+    },
+    {
+      "id": "server/src/config/env.ts",
+      "label": "env.ts",
+      "type": "file",
+      "filePath": "server/src/config/env.ts",
+      "summary": "Source module with 31 lines of code.",
+      "lineRange": [
+        1,
+        31
+      ]
+    },
+    {
+      "id": "server/src/config/logger.ts",
+      "label": "logger.ts",
+      "type": "file",
+      "filePath": "server/src/config/logger.ts",
+      "summary": "Source module with 18 lines of code.",
+      "lineRange": [
+        1,
+        18
+      ]
+    },
+    {
+      "id": "server/src/config/rulesLoader.ts",
+      "label": "rulesLoader.ts",
+      "type": "file",
+      "filePath": "server/src/config/rulesLoader.ts",
+      "summary": "Source module with 107 lines of code.",
+      "lineRange": [
+        1,
+        107
+      ]
+    },
+    {
+      "id": "server/src/dev-mongo.ts",
+      "label": "dev-mongo.ts",
+      "type": "file",
+      "filePath": "server/src/dev-mongo.ts",
+      "summary": "Source module with 64 lines of code.",
+      "lineRange": [
+        1,
+        64
+      ]
+    },
+    {
+      "id": "server/src/guidewireMock/client.ts",
+      "label": "client.ts",
+      "type": "file",
+      "filePath": "server/src/guidewireMock/client.ts",
+      "summary": "Source module with 129 lines of code.",
+      "lineRange": [
+        1,
+        129
+      ]
+    },
+    {
+      "id": "server/src/guidewireMock/router.ts",
+      "label": "router.ts",
+      "type": "file",
+      "filePath": "server/src/guidewireMock/router.ts",
+      "summary": "Source module with 81 lines of code.",
+      "lineRange": [
+        1,
+        81
+      ]
+    },
+    {
+      "id": "server/src/middleware/currentUser.ts",
+      "label": "currentUser.ts",
+      "type": "file",
+      "filePath": "server/src/middleware/currentUser.ts",
+      "summary": "Source module with 28 lines of code.",
+      "lineRange": [
+        1,
+        28
+      ]
+    },
+    {
+      "id": "server/src/middleware/errorHandler.ts",
+      "label": "errorHandler.ts",
+      "type": "file",
+      "filePath": "server/src/middleware/errorHandler.ts",
+      "summary": "Source module with 42 lines of code.",
+      "lineRange": [
+        1,
+        42
+      ]
+    },
+    {
+      "id": "server/src/middleware/validate.ts",
+      "label": "validate.ts",
+      "type": "file",
+      "filePath": "server/src/middleware/validate.ts",
+      "summary": "Source module with 27 lines of code.",
+      "lineRange": [
+        1,
+        27
+      ]
+    },
+    {
+      "id": "server/src/models/Account.ts",
+      "label": "Account.ts",
+      "type": "model",
+      "filePath": "server/src/models/Account.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for Account.",
+      "lineRange": [
+        1,
+        24
+      ]
+    },
+    {
+      "id": "server/src/models/Activity.ts",
+      "label": "Activity.ts",
+      "type": "model",
+      "filePath": "server/src/models/Activity.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for Activity.",
+      "lineRange": [
+        1,
+        42
+      ]
+    },
+    {
+      "id": "server/src/models/AuditLog.ts",
+      "label": "AuditLog.ts",
+      "type": "model",
+      "filePath": "server/src/models/AuditLog.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for AuditLog.",
+      "lineRange": [
+        1,
+        55
+      ]
+    },
+    {
+      "id": "server/src/models/Company.ts",
+      "label": "Company.ts",
+      "type": "model",
+      "filePath": "server/src/models/Company.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for Company.",
+      "lineRange": [
+        1,
+        73
+      ]
+    },
+    {
+      "id": "server/src/models/Decision.ts",
+      "label": "Decision.ts",
+      "type": "model",
+      "filePath": "server/src/models/Decision.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for Decision.",
+      "lineRange": [
+        1,
+        41
+      ]
+    },
+    {
+      "id": "server/src/models/DriftEvent.ts",
+      "label": "DriftEvent.ts",
+      "type": "model",
+      "filePath": "server/src/models/DriftEvent.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for DriftEvent.",
+      "lineRange": [
+        1,
+        135
+      ]
+    },
+    {
+      "id": "server/src/models/FloodLookup.ts",
+      "label": "FloodLookup.ts",
+      "type": "model",
+      "filePath": "server/src/models/FloodLookup.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for FloodLookup.",
+      "lineRange": [
+        1,
+        20
+      ]
+    },
+    {
+      "id": "server/src/models/HazardLookup.ts",
+      "label": "HazardLookup.ts",
+      "type": "model",
+      "filePath": "server/src/models/HazardLookup.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for HazardLookup.",
+      "lineRange": [
+        1,
+        37
+      ]
+    },
+    {
+      "id": "server/src/models/Location.ts",
+      "label": "Location.ts",
+      "type": "model",
+      "filePath": "server/src/models/Location.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for Location.",
+      "lineRange": [
+        1,
+        73
+      ]
+    },
+    {
+      "id": "server/src/models/Policy.ts",
+      "label": "Policy.ts",
+      "type": "model",
+      "filePath": "server/src/models/Policy.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for Policy.",
+      "lineRange": [
+        1,
+        37
+      ]
+    },
+    {
+      "id": "server/src/models/PortfolioConfig.ts",
+      "label": "PortfolioConfig.ts",
+      "type": "model",
+      "filePath": "server/src/models/PortfolioConfig.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for PortfolioConfig.",
+      "lineRange": [
+        1,
+        17
+      ]
+    },
+    {
+      "id": "server/src/models/Product.ts",
+      "label": "Product.ts",
+      "type": "model",
+      "filePath": "server/src/models/Product.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for Product.",
+      "lineRange": [
+        1,
+        72
+      ]
+    },
+    {
+      "id": "server/src/models/RiskSnapshot.ts",
+      "label": "RiskSnapshot.ts",
+      "type": "model",
+      "filePath": "server/src/models/RiskSnapshot.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for RiskSnapshot.",
+      "lineRange": [
+        1,
+        75
+      ]
+    },
+    {
+      "id": "server/src/models/RuleVersion.ts",
+      "label": "RuleVersion.ts",
+      "type": "model",
+      "filePath": "server/src/models/RuleVersion.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for RuleVersion.",
+      "lineRange": [
+        1,
+        24
+      ]
+    },
+    {
+      "id": "server/src/models/Signal.ts",
+      "label": "Signal.ts",
+      "type": "model",
+      "filePath": "server/src/models/Signal.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for Signal.",
+      "lineRange": [
+        1,
+        41
+      ]
+    },
+    {
+      "id": "server/src/models/User.ts",
+      "label": "User.ts",
+      "type": "model",
+      "filePath": "server/src/models/User.ts",
+      "summary": "MongoDB Mongoose schema and persistence model for User.",
+      "lineRange": [
+        1,
+        25
+      ]
+    },
+    {
+      "id": "server/src/routes/activities.ts",
+      "label": "activities.ts",
+      "type": "route",
+      "filePath": "server/src/routes/activities.ts",
+      "summary": "Express API route controller for activities.",
+      "lineRange": [
+        1,
+        16
+      ]
+    },
+    {
+      "id": "server/src/routes/admin.ts",
+      "label": "admin.ts",
+      "type": "route",
+      "filePath": "server/src/routes/admin.ts",
+      "summary": "Express API route controller for admin.",
+      "lineRange": [
+        1,
+        23
+      ]
+    },
+    {
+      "id": "server/src/routes/audit.ts",
+      "label": "audit.ts",
+      "type": "route",
+      "filePath": "server/src/routes/audit.ts",
+      "summary": "Express API route controller for audit.",
+      "lineRange": [
+        1,
+        28
+      ]
+    },
+    {
+      "id": "server/src/routes/companies.ts",
+      "label": "companies.ts",
+      "type": "route",
+      "filePath": "server/src/routes/companies.ts",
+      "summary": "Express API route controller for companies.",
+      "lineRange": [
+        1,
+        67
+      ]
+    },
+    {
+      "id": "server/src/routes/events.ts",
+      "label": "events.ts",
+      "type": "route",
+      "filePath": "server/src/routes/events.ts",
+      "summary": "Express API route controller for events.",
+      "lineRange": [
+        1,
+        72
+      ]
+    },
+    {
+      "id": "server/src/routes/health.ts",
+      "label": "health.ts",
+      "type": "route",
+      "filePath": "server/src/routes/health.ts",
+      "summary": "Express API route controller for health.",
+      "lineRange": [
+        1,
+        13
+      ]
+    },
+    {
+      "id": "server/src/routes/policies.ts",
+      "label": "policies.ts",
+      "type": "route",
+      "filePath": "server/src/routes/policies.ts",
+      "summary": "Express API route controller for policies.",
+      "lineRange": [
+        1,
+        67
+      ]
+    },
+    {
+      "id": "server/src/routes/portfolio.ts",
+      "label": "portfolio.ts",
+      "type": "route",
+      "filePath": "server/src/routes/portfolio.ts",
+      "summary": "Express API route controller for portfolio.",
+      "lineRange": [
+        1,
+        24
+      ]
+    },
+    {
+      "id": "server/src/routes/rules.ts",
+      "label": "rules.ts",
+      "type": "route",
+      "filePath": "server/src/routes/rules.ts",
+      "summary": "Express API route controller for rules.",
+      "lineRange": [
+        1,
+        15
+      ]
+    },
+    {
+      "id": "server/src/routes/signals.ts",
+      "label": "signals.ts",
+      "type": "route",
+      "filePath": "server/src/routes/signals.ts",
+      "summary": "Express API route controller for signals.",
+      "lineRange": [
+        1,
+        19
+      ]
+    },
+    {
+      "id": "server/src/routes/simulator.ts",
+      "label": "simulator.ts",
+      "type": "route",
+      "filePath": "server/src/routes/simulator.ts",
+      "summary": "Express API route controller for simulator.",
+      "lineRange": [
+        1,
+        196
+      ]
+    },
+    {
+      "id": "server/src/schemas/decision.schema.ts",
+      "label": "decision.schema.ts",
+      "type": "file",
+      "filePath": "server/src/schemas/decision.schema.ts",
+      "summary": "Source module with 19 lines of code.",
+      "lineRange": [
+        1,
+        19
+      ]
+    },
+    {
+      "id": "server/src/schemas/signal.schema.ts",
+      "label": "signal.schema.ts",
+      "type": "file",
+      "filePath": "server/src/schemas/signal.schema.ts",
+      "summary": "Source module with 86 lines of code.",
+      "lineRange": [
+        1,
+        86
+      ]
+    },
+    {
+      "id": "server/src/seed/hazardData.ts",
+      "label": "hazardData.ts",
+      "type": "file",
+      "filePath": "server/src/seed/hazardData.ts",
+      "summary": "Source module with 638 lines of code.",
+      "lineRange": [
+        1,
+        638
+      ]
+    },
+    {
+      "id": "server/src/seed/index.ts",
+      "label": "index.ts",
+      "type": "file",
+      "filePath": "server/src/seed/index.ts",
+      "summary": "Source module with 812 lines of code.",
+      "lineRange": [
+        1,
+        812
+      ]
+    },
+    {
+      "id": "server/src/seed/indianInsurersData.ts",
+      "label": "indianInsurersData.ts",
+      "type": "file",
+      "filePath": "server/src/seed/indianInsurersData.ts",
+      "summary": "Source module with 504 lines of code.",
+      "lineRange": [
+        1,
+        504
+      ]
+    },
+    {
+      "id": "server/src/server.ts",
+      "label": "server.ts",
+      "type": "file",
+      "filePath": "server/src/server.ts",
+      "summary": "Source module with 57 lines of code.",
+      "lineRange": [
+        1,
+        57
+      ]
+    },
+    {
+      "id": "server/src/services/audit/index.ts",
+      "label": "index.ts",
+      "type": "service",
+      "filePath": "server/src/services/audit/index.ts",
+      "summary": "Core underwriting and integration service logic in index.",
+      "lineRange": [
+        1,
+        21
+      ]
+    },
+    {
+      "id": "server/src/services/detection/index.ts",
+      "label": "index.ts",
+      "type": "service",
+      "filePath": "server/src/services/detection/index.ts",
+      "summary": "Core underwriting and integration service logic in index.",
+      "lineRange": [
+        1,
+        242
+      ]
+    },
+    {
+      "id": "server/src/services/events/index.ts",
+      "label": "index.ts",
+      "type": "service",
+      "filePath": "server/src/services/events/index.ts",
+      "summary": "Core underwriting and integration service logic in index.",
+      "lineRange": [
+        1,
+        27
+      ]
+    },
+    {
+      "id": "server/src/services/events/workflow.ts",
+      "label": "workflow.ts",
+      "type": "service",
+      "filePath": "server/src/services/events/workflow.ts",
+      "summary": "Core underwriting and integration service logic in workflow.",
+      "lineRange": [
+        1,
+        109
+      ]
+    },
+    {
+      "id": "server/src/services/hazards/index.ts",
+      "label": "index.ts",
+      "type": "service",
+      "filePath": "server/src/services/hazards/index.ts",
+      "summary": "Core underwriting and integration service logic in index.",
+      "lineRange": [
+        1,
+        135
+      ]
+    },
+    {
+      "id": "server/src/services/materiality/index.ts",
+      "label": "index.ts",
+      "type": "service",
+      "filePath": "server/src/services/materiality/index.ts",
+      "summary": "Core underwriting and integration service logic in index.",
+      "lineRange": [
+        1,
+        287
+      ]
+    },
+    {
+      "id": "server/src/services/portfolio/index.ts",
+      "label": "index.ts",
+      "type": "service",
+      "filePath": "server/src/services/portfolio/index.ts",
+      "summary": "Core underwriting and integration service logic in index.",
+      "lineRange": [
+        1,
+        297
+      ]
+    },
+    {
+      "id": "server/src/services/resolution/index.ts",
+      "label": "index.ts",
+      "type": "service",
+      "filePath": "server/src/services/resolution/index.ts",
+      "summary": "Core underwriting and integration service logic in index.",
+      "lineRange": [
+        1,
+        493
+      ]
+    },
+    {
+      "id": "server/src/services/signals/index.ts",
+      "label": "index.ts",
+      "type": "service",
+      "filePath": "server/src/services/signals/index.ts",
+      "summary": "Core underwriting and integration service logic in index.",
+      "lineRange": [
+        1,
+        406
+      ]
+    },
+    {
+      "id": "comp:entity-resolution",
+      "label": "Weighted Entity Resolution Engine",
+      "type": "algorithm",
+      "filePath": "server/src/services/resolution/index.ts",
+      "summary": "Calculates 0.6*Name + 0.3*Address + 0.1*PIN weighted match confidence against verified Indian Guidewire insurers.",
+      "lineRange": null
+    },
+    {
+      "id": "comp:rules-engine",
+      "label": "Deterministic Detection Rules Engine",
+      "type": "engine",
+      "filePath": "server/src/services/rules/detection.ts",
+      "summary": "Evaluates R1 (TIV drift), R2 (Score jump), R3 (High band entry), R4 (Peril worsening), and R5 (Portfolio limit breach).",
+      "lineRange": null
+    },
+    {
+      "id": "comp:portfolio-engine",
+      "label": "Portfolio Concentration Engine",
+      "type": "engine",
+      "filePath": "server/src/services/portfolio/index.ts",
+      "summary": "Calculates $300M accumulation book risk and enforces the 20% South-East flood cap.",
+      "lineRange": null
+    },
+    {
+      "id": "comp:gw-adapter",
+      "label": "Guidewire PolicyCenter Mock Adapter",
+      "type": "adapter",
+      "filePath": "server/src/services/guidewire/mockAdapter.ts",
+      "summary": "Manages PolicyCenter activity dispatch and underwriter review lifecycle.",
+      "lineRange": null
+    },
+    {
+      "id": "comp:mercury-ui",
+      "label": "Mercury Design System Shell",
+      "type": "ui-system",
+      "filePath": "client/src/index.css",
+      "summary": "Refined off-white layout (#F8F8F5), forest green accents, 1px borders, and tabular data tables.",
+      "lineRange": null
+    },
+    {
+      "id": "comp:indian-registry",
+      "label": "Indian Guidewire Insurer Registry",
+      "type": "registry",
+      "filePath": "server/src/models/Company.ts",
+      "summary": "Canonical directory of 10 verified Indian general insurance companies using Guidewire products.",
+      "lineRange": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "server/src/routes/signals.ts",
+      "target": "comp:entity-resolution",
+      "relationship": "delegates_matching"
+    },
+    {
+      "source": "server/src/routes/signals.ts",
+      "target": "comp:rules-engine",
+      "relationship": "triggers_evaluation"
+    },
+    {
+      "source": "comp:rules-engine",
+      "target": "comp:portfolio-engine",
+      "relationship": "queries_accumulation_limits"
+    },
+    {
+      "source": "comp:rules-engine",
+      "target": "comp:gw-adapter",
+      "relationship": "dispatches_activities"
+    },
+    {
+      "source": "comp:entity-resolution",
+      "target": "comp:indian-registry",
+      "relationship": "matches_against"
+    },
+    {
+      "source": "server/src/routes/companies.ts",
+      "target": "comp:indian-registry",
+      "relationship": "exposes_directory"
+    },
+    {
+      "source": "client/src/pages/Registry.tsx",
+      "target": "server/src/routes/companies.ts",
+      "relationship": "consumes_api"
+    },
+    {
+      "source": "client/src/pages/Simulator.tsx",
+      "target": "server/src/routes/simulator.ts",
+      "relationship": "triggers_scenarios"
+    },
+    {
+      "source": "client/src/pages/Desktop.tsx",
+      "target": "server/src/routes/activities.ts",
+      "relationship": "manages_queue"
+    },
+    {
+      "source": "client/src/pages/EventDetail.tsx",
+      "target": "server/src/routes/events.ts",
+      "relationship": "inspects_decisions"
+    },
+    {
+      "source": "client/src/pages/Portfolio.tsx",
+      "target": "server/src/routes/portfolio.ts",
+      "relationship": "renders_risk_analytics"
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer-presentation",
+      "name": "Presentation & UI Layer",
+      "description": "Mercury-inspired React frontend featuring Review Queue, Event Investigation Workspace, Simulator, and Indian Insurer Registry.",
+      "nodeIds": [
+        "client/src/api/client.ts",
+        "client/src/App.tsx",
+        "client/src/components/DecisionModal.test.tsx",
+        "client/src/components/DecisionModal.tsx",
+        "client/src/components/layout/BottomNav.tsx",
+        "client/src/components/layout/Breadcrumbs.tsx",
+        "client/src/components/layout/Footer.tsx",
+        "client/src/components/layout/Sidebar.tsx",
+        "client/src/components/layout/TopBar.tsx",
+        "client/src/components/SeverityChip.test.tsx",
+        "client/src/components/SeverityChip.tsx",
+        "client/src/hooks/useApi.ts",
+        "client/src/hooks/useUserStore.tsx",
+        "client/src/main.tsx",
+        "client/src/pages/Audit.tsx",
+        "client/src/pages/Desktop.tsx",
+        "client/src/pages/EventDetail.tsx",
+        "client/src/pages/Login.tsx",
+        "client/src/pages/Policies.tsx",
+        "client/src/pages/Portfolio.tsx",
+        "client/src/pages/Products.tsx",
+        "client/src/pages/Registry.tsx",
+        "client/src/pages/Rules.tsx",
+        "client/src/pages/Simulator.tsx",
+        "client/src/test/setup.ts"
+      ]
+    },
+    {
+      "id": "layer-api",
+      "name": "API & Gateway Layer",
+      "description": "Express.js HTTP endpoints handling external signals, policy queries, insurer matching, and scenario simulation.",
+      "nodeIds": [
+        "server/src/routes/activities.ts",
+        "server/src/routes/admin.ts",
+        "server/src/routes/audit.ts",
+        "server/src/routes/companies.ts",
+        "server/src/routes/events.ts",
+        "server/src/routes/health.ts",
+        "server/src/routes/policies.ts",
+        "server/src/routes/portfolio.ts",
+        "server/src/routes/rules.ts",
+        "server/src/routes/signals.ts",
+        "server/src/routes/simulator.ts"
+      ]
+    },
+    {
+      "id": "layer-business-logic",
+      "name": "Business Logic & Rules Engine",
+      "description": "Deterministic underwriting evaluation (R1-R5), multi-hazard severity scoring, and weighted confidence entity resolution.",
+      "nodeIds": [
+        "server/src/services/audit/index.ts",
+        "server/src/services/detection/index.ts",
+        "server/src/services/events/index.ts",
+        "server/src/services/events/workflow.ts",
+        "server/src/services/hazards/index.ts",
+        "server/src/services/materiality/index.ts",
+        "server/src/services/portfolio/index.ts",
+        "server/src/services/resolution/index.ts",
+        "server/src/services/signals/index.ts",
+        "comp:entity-resolution",
+        "comp:rules-engine",
+        "comp:portfolio-engine"
+      ]
+    },
+    {
+      "id": "layer-integration",
+      "name": "Guidewire Integration & Registry",
+      "description": "Guidewire PolicyCenter adapter for activity sync, and verified Indian general insurer records.",
+      "nodeIds": [
+        "comp:gw-adapter",
+        "comp:indian-registry",
+        "server/src/seed/indianInsurersData.ts",
+        "server/src/services/guidewire/mockAdapter.ts"
+      ]
+    },
+    {
+      "id": "layer-persistence",
+      "name": "Persistence & Data Layer",
+      "description": "MongoDB Mongoose models with replica-set change streams and partial unique indexes.",
+      "nodeIds": [
+        "server/src/models/Account.ts",
+        "server/src/models/Activity.ts",
+        "server/src/models/AuditLog.ts",
+        "server/src/models/Company.ts",
+        "server/src/models/Decision.ts",
+        "server/src/models/DriftEvent.ts",
+        "server/src/models/FloodLookup.ts",
+        "server/src/models/HazardLookup.ts",
+        "server/src/models/Location.ts",
+        "server/src/models/Policy.ts",
+        "server/src/models/PortfolioConfig.ts",
+        "server/src/models/Product.ts",
+        "server/src/models/RiskSnapshot.ts",
+        "server/src/models/RuleVersion.ts",
+        "server/src/models/Signal.ts",
+        "server/src/models/User.ts"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "External Signal Intake & Idempotency",
+      "description": "External environmental alerts and location updates hit POST /signals. Partial unique indexes ensure duplicate alerts merge into open events without duplicate tickets.",
+      "nodeIds": [
+        "server/src/routes/signals.ts",
+        "server/src/models/Event.ts"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "Indian Guidewire Insurer Entity Resolution",
+      "description": "Incoming signals are matched using the 0.6*Name + 0.3*Address + 0.1*PIN formula against verified Indian general insurers. Confidence below 0.75 triggers a verification gate.",
+      "nodeIds": [
+        "comp:entity-resolution",
+        "comp:indian-registry",
+        "client/src/pages/Registry.tsx"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "Deterministic Rules & Multi-Hazard Evaluation",
+      "description": "The engine evaluates 5 rules (R1-R5) against monitored peril policies across 8 natural perils (Earthquake, Flood, Cyclone, Wildfire, etc.).",
+      "nodeIds": [
+        "comp:rules-engine",
+        "server/src/services/hazards/index.ts",
+        "server/src/services/rules/detection.ts"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "Portfolio Concentration & Accumulation Cap",
+      "description": "Simulates $300M total insured value. When a facility in Savannah GA adds $1.4M flood exposure, it breaches the 20% South-East regional cap (20.07%).",
+      "nodeIds": [
+        "comp:portfolio-engine",
+        "client/src/pages/Portfolio.tsx"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "PolicyCenter Activity Workflow & Audit Trail",
+      "description": "High-severity breaches generate activities in Guidewire PolicyCenter. Underwriters review, accept, or decline changes, writing every action to an immutable audit ledger.",
+      "nodeIds": [
+        "comp:gw-adapter",
+        "client/src/pages/Desktop.tsx",
+        "client/src/pages/Audit.tsx"
+      ]
+    }
+  ]
+}

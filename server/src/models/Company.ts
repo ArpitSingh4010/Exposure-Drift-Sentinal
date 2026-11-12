@@ -69,3 +69,4 @@ const CompanySchema = new Schema<ICompany>(
 CompanySchema.index({ legalName: 'text', commonName: 'text', aliases: 'text' });
 
 export const Company = model<ICompany>('Company', CompanySchema);
+

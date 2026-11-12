@@ -347,7 +347,6 @@ exposure-drift-sentinel/
 │   │   └── seed/                # Deterministic $300M fixture data seeder
 │   └── package.json
 │
-├── docker-compose.yml           # Full containerized stack configuration
 └── README.md                    # Project documentation
 ```
 

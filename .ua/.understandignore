@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+coverage/
+.git/
+.ua/
+.understand-anything/
+mongo-data/
+*.log
+

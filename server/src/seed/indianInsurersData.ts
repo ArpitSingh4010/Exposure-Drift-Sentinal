@@ -500,3 +500,4 @@ export const VERIFIED_INDIAN_INSURERS: SeedCompany[] = [
     ],
   },
 ];
+
