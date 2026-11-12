@@ -114,11 +114,7 @@ const floodMap = new Map<string, (typeof FLOOD_LOOKUP)[number]>(
 
 // ── Users ─────────────────────────────────────────────────────────────────
 const USERS = [
-  { userId: 'USR-001', name: 'Priya Sharma',    role: 'UNDERWRITER'        },
-  { userId: 'USR-002', name: 'Marcus Williams', role: 'SENIOR_UNDERWRITER' },
-  { userId: 'USR-003', name: 'Admin User',      role: 'ADMIN'              },
-  { userId: 'USR-004', name: 'Aisha Patel',     role: 'UNDERWRITER'        },
-  { userId: 'USR-005', name: 'Devon Torres',    role: 'UNDERWRITER'        },
+  { userId: 'USR-001', name: 'Priya Sharma', role: 'UNDERWRITER' },
 ] as const;
 
 // ── Accounts ──────────────────────────────────────────────────────────────

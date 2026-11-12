@@ -77,22 +77,7 @@ export class InProcessGuidewireClient implements GuidewireClient {
   }
 
   async createActivity(input: CreateActivityInput, session?: ClientSession): Promise<IActivity> {
-    let assigneeUserId = input.assigneeUserId;
-    if (!assigneeUserId) {
-      const underwritersQuery = User.find({ role: 'UNDERWRITER' }).sort({ userId: 1 }).lean();
-      if (session) underwritersQuery.session(session);
-      const underwriters = await underwritersQuery.exec();
-      if (underwriters.length === 0) throw new Error('No underwriter is available for assignment');
-      const counter = await PortfolioConfig.findOneAndUpdate(
-        { key: 'activityAssigneeIdx' },
-        { $inc: { value: 1 } },
-        { new: true, upsert: true, session, setDefaultsOnInsert: true },
-      ).lean().exec();
-      const index = Math.max(0, Number(counter?.value ?? 1) - 1) % underwriters.length;
-      const assignee = underwriters[index];
-      if (!assignee) throw new Error('Assignee rotation returned no user');
-      assigneeUserId = assignee.userId;
-    }
+    const assigneeUserId = input.assigneeUserId || 'USR-001';
 
     const [activity] = await Activity.create([{
       activityId: `ACT-${randomUUID()}`,

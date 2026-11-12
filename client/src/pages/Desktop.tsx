@@ -35,11 +35,7 @@ function resolveEventHazard(event: EventRecord): string {
 }
 
 const USERS: Record<string, string> = {
-  'USR-001': 'P. Sharma',
-  'USR-002': 'M. Williams',
-  'USR-003': 'Admin',
-  'USR-004': 'A. Patel',
-  'USR-005': 'D. Torres',
+  'USR-001': 'Priya Sharma',
 };
 
 export function Desktop(): React.ReactElement {
@@ -52,7 +48,6 @@ export function Desktop(): React.ReactElement {
   const hazardParam = searchParams.get('hazard') ?? 'ALL';
   const severity    = searchParams.get('severity') ?? 'ALL';
   const status      = searchParams.get('status') ?? 'OPEN';
-  const mine        = searchParams.get('mine') === 'true';
   const search      = searchParams.get('q') ?? '';
 
   const updateParam = (key: string, value: string) => {
@@ -73,7 +68,6 @@ export function Desktop(): React.ReactElement {
         if (!event) return false;
         if (status !== 'ALL' && activity.status !== status) return false;
         if (severity !== 'ALL' && event.severity !== severity) return false;
-        if (mine && activity.assigneeUserId !== currentUser) return false;
         const evHazard = resolveEventHazard(event);
         if (hazardParam !== 'ALL' && evHazard !== hazardParam) return false;
         if (search.trim()) {
@@ -84,7 +78,7 @@ export function Desktop(): React.ReactElement {
         }
         return true;
       }),
-    [activities, eventById, status, severity, mine, currentUser, search, hazardParam]
+    [activities, eventById, status, severity, search, hazardParam]
   );
 
   const openCount    = activities.filter((a) => a.status === 'OPEN').length;
@@ -215,24 +209,6 @@ export function Desktop(): React.ReactElement {
           <option value="COMPLETED">Completed</option>
         </select>
 
-        <label style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.4rem',
-          fontSize: '0.8125rem',
-          color: 'var(--text-secondary)',
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}>
-          <input
-            type="checkbox"
-            checked={mine}
-            onChange={(e) => updateParam('mine', e.target.checked ? 'true' : 'false')}
-            style={{ accentColor: 'var(--green-primary)' }}
-          />
-          Assigned to me
-        </label>
-
         {/* Result count */}
         <div style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
           {rows.length} {rows.length === 1 ? 'result' : 'results'}
@@ -258,7 +234,7 @@ export function Desktop(): React.ReactElement {
                   <th style={{ width: '70px', textAlign: 'right' }}>Match</th>
                   <th style={{ width: '90px' }}>Status</th>
                   <th style={{ width: '90px' }}>Due</th>
-                  <th style={{ width: '110px' }}>Assignee</th>
+                  <th style={{ width: '80px', textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -362,16 +338,11 @@ export function Desktop(): React.ReactElement {
                         )}
                       </td>
 
-                      {/* Assignee */}
-                      <td>
-                        <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-                          {USERS[activity.assigneeUserId] ?? activity.assigneeUserId}
-                        </div>
-                        {activity.seniorFlag && (
-                          <div style={{ fontSize: '0.625rem', color: 'var(--risk-med-text)', fontWeight: 500 }}>
-                            Senior referral
-                          </div>
-                        )}
+                      {/* Action */}
+                      <td style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--green-primary)', fontWeight: 500 }}>
+                          Inspect →
+                        </span>
                       </td>
                     </tr>
                   );

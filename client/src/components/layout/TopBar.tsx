@@ -14,11 +14,7 @@ const NAV_ITEMS = [
 ];
 
 export const USERS = [
-  { id: 'USR-001', name: 'Priya Sharma',    role: 'Underwriter',        initials: 'PS' },
-  { id: 'USR-002', name: 'Marcus Williams', role: 'Senior Underwriter',  initials: 'MW' },
-  { id: 'USR-003', name: 'Admin User',      role: 'Administrator',       initials: 'AU' },
-  { id: 'USR-004', name: 'Aisha Patel',     role: 'Underwriter',        initials: 'AP' },
-  { id: 'USR-005', name: 'Devon Torres',    role: 'Underwriter',        initials: 'DT' },
+  { id: 'USR-001', name: 'Priya Sharma', role: 'Commercial Underwriter', initials: 'PS' },
 ];
 
 export function TopBar(): React.ReactElement {
@@ -27,11 +23,11 @@ export function TopBar(): React.ReactElement {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const activeUser = USERS.find((u) => u.id === userId) ?? USERS[0]!;
+  const activeUser = USERS[0]!;
 
   useEffect(() => {
-    if (!userId) setUserId(USERS[0]!.id);
-  }, [setUserId, userId]);
+    if (userId !== activeUser.id) setUserId(activeUser.id);
+  }, [setUserId, userId, activeUser.id]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -48,11 +44,6 @@ export function TopBar(): React.ReactElement {
     localStorage.removeItem('eds_userId');
     setUserId('');
     navigate('/login');
-  };
-
-  const handleSwitchUser = (id: string) => {
-    setUserId(id);
-    setMenuOpen(false);
   };
 
   return (
@@ -170,7 +161,7 @@ export function TopBar(): React.ReactElement {
             position: 'absolute',
             right: 0,
             top: 'calc(100% + 6px)',
-            width: '240px',
+            width: '220px',
             backgroundColor: '#1A1A17',
             border: '1px solid #2A2A27',
             borderRadius: '6px',
@@ -178,67 +169,20 @@ export function TopBar(): React.ReactElement {
             zIndex: 50,
             overflow: 'hidden',
           }}>
-            <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.6875rem', color: '#8A8880', borderBottom: '1px solid #2A2A27' }}>
-              Switch underwriter
+            <div style={{ padding: '0.75rem', borderBottom: '1px solid #2A2A27' }}>
+              <div style={{ fontSize: '0.8125rem', color: '#E8E6E0', fontWeight: 600 }}>
+                {activeUser.name}
+              </div>
+              <div style={{ fontSize: '0.6875rem', color: '#8A8880', marginTop: '0.125rem' }}>
+                {activeUser.role} • {activeUser.id}
+              </div>
+              <div style={{ fontSize: '0.625rem', color: '#2D6A4F', fontWeight: 500, marginTop: '0.375rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#2D6A4F' }} />
+                Active Account
+              </div>
             </div>
 
-            {USERS.map((user) => (
-              <button
-                key={user.id}
-                type="button"
-                onClick={() => handleSwitchUser(user.id)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.625rem',
-                  padding: '0.5rem 0.75rem',
-                  textAlign: 'left',
-                  cursor: 'pointer',
-                  border: 'none',
-                  backgroundColor: user.id === userId ? '#252522' : 'transparent',
-                  transition: 'background-color 100ms ease',
-                }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#252522'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = user.id === userId ? '#252522' : 'transparent'; }}
-              >
-                <div style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  backgroundColor: user.id === userId ? '#2D6A4F' : '#3A3A37',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white',
-                  fontSize: '0.6rem',
-                  fontWeight: '700',
-                  flexShrink: 0,
-                  letterSpacing: '0.02em',
-                }}>
-                  {user.initials}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: '0.8125rem', color: '#E8E6E0', fontWeight: user.id === userId ? 500 : 400 }}>
-                    {user.name}
-                  </div>
-                  <div style={{ fontSize: '0.6875rem', color: '#8A8880' }}>
-                    {user.role}
-                  </div>
-                </div>
-                {user.id === userId && (
-                  <div style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: '#2D6A4F',
-                    flexShrink: 0,
-                  }} />
-                )}
-              </button>
-            ))}
-
-            <div style={{ borderTop: '1px solid #2A2A27', padding: '0.375rem 0' }}>
+            <div style={{ padding: '0.375rem 0' }}>
               <button
                 type="button"
                 onClick={handleLogout}

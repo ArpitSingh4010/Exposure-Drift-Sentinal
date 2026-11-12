@@ -35,7 +35,6 @@ async function createActivityForEvent(event: InstanceType<typeof DriftEvent>) {
     description: event.whyItMatters,
     priority: event.severity,
     dueBusinessDays: dueBusinessDays(event.severity),
-    seniorFlag: event.severity === 'HIGH' ? 'USR-002' : undefined,
   });
 }
 
