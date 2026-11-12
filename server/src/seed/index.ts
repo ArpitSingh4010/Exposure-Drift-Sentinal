@@ -581,6 +581,75 @@ export async function ensureIndexes(): Promise<void> {
   ]);
 }
 
+// ── Baseline Audit Logs ───────────────────────────────────────────────────
+
+const BASELINE_AUDIT_LOGS = [
+  {
+    ts: new Date(Date.now() - 3600000 * 24 * 5),
+    actor: 'system',
+    action: 'SYSTEM_INIT',
+    entityType: 'PORTFOLIO_CONFIG',
+    entityId: 'EDS_CORE',
+    details: { event: 'Exposure Drift Sentinel core engine initialized', version: '2.4.0', status: 'READY' },
+  },
+  {
+    ts: new Date(Date.now() - 3600000 * 24 * 4),
+    actor: 'system',
+    action: 'PORTFOLIO_CONFIG_SET',
+    entityType: 'PORTFOLIO_CONFIG',
+    entityId: 'floodCap_South-East',
+    details: { appetiteCap: 0.20, region: 'South-East', hazard: 'flood', guideline: 'CRO Underwriting Guidelines' },
+  },
+  {
+    ts: new Date(Date.now() - 3600000 * 24 * 3),
+    actor: 'guidewire-sync',
+    action: 'POLICY_BIND_SYNC',
+    entityType: 'RISK_SNAPSHOT',
+    entityId: 'POL-100001',
+    details: { policyNumber: 'POL-100001', insured: 'Acme Manufacturing', locations: 3, boundTiv: 10655552, status: 'IN_FORCE' },
+  },
+  {
+    ts: new Date(Date.now() - 3600000 * 24 * 3 + 1800000),
+    actor: 'guidewire-sync',
+    action: 'POLICY_BIND_SYNC',
+    entityType: 'RISK_SNAPSHOT',
+    entityId: 'POL-100245',
+    details: { policyNumber: 'POL-100245', insured: 'Apex Logistics', locations: 2, boundTiv: 4000000, status: 'IN_FORCE' },
+  },
+  {
+    ts: new Date(Date.now() - 3600000 * 24 * 2),
+    actor: 'fema-nfip',
+    action: 'SIGNAL_RECEIVED',
+    entityType: 'SIGNAL',
+    entityId: 'SIG-FEMA-2026-041',
+    details: { provider: 'FEMA FIRM Coastal Update', state: 'FL', updatedCounties: ['Hillsborough', 'Pinellas'], status: 'INGESTED' },
+  },
+  {
+    ts: new Date(Date.now() - 3600000 * 24 * 1),
+    actor: 'usgs-feed',
+    action: 'SIGNAL_RECEIVED',
+    entityType: 'SIGNAL',
+    entityId: 'SIG-USGS-2026-088',
+    details: { provider: 'USGS ShakeMap Catalog', territory: 'West', thresholdMw: 4.5, matches: 0 },
+  },
+  {
+    ts: new Date(Date.now() - 3600000 * 12),
+    actor: 'USR-001',
+    action: 'UNDERWRITER_LOGIN',
+    entityType: 'ACTIVITY',
+    entityId: 'USR-001',
+    details: { underwriter: 'Priya Sharma', workstation: 'Commercial Property Line', session: 'ACTIVE' },
+  },
+  {
+    ts: new Date(Date.now() - 3600000 * 6),
+    actor: 'system',
+    action: 'PORTFOLIO_SCAN_PASS',
+    entityType: 'PORTFOLIO_CONFIG',
+    entityId: 'SE_FLOOD_BASELINE',
+    details: { seFloodExposure: '19.70%', appetiteCap: '20.00%', status: 'WITHIN_APPETITE', totalTiv: 502000000 },
+  },
+];
+
 // ── Main seed function ────────────────────────────────────────────────────
 
 export async function seedDb(): Promise<void> {
@@ -600,8 +669,7 @@ export async function seedDb(): Promise<void> {
     Activity.deleteMany({}),
     Decision.deleteMany({}),
     RuleVersion.deleteMany({}),
-    // AuditLog is append-only — reset is the one administrative exception.
-    mongoose.connection.collection('auditlogs').deleteMany({}),
+    // AuditLog is strictly immutable and append-only — preserved across resets.
     PortfolioConfig.deleteMany({}),
   ]);
 
@@ -771,6 +839,27 @@ export async function seedDb(): Promise<void> {
       },
     });
   }
+
+  // ── 9. Ensure Audit Ledger has baseline history & records reset ──────────
+  const auditColl = mongoose.connection.collection('auditlogs');
+  const existingCount = await auditColl.countDocuments();
+  if (existingCount < 5) {
+    await auditColl.insertMany(BASELINE_AUDIT_LOGS);
+  }
+  // Record the baseline calibration event in the immutable ledger
+  await auditColl.insertOne({
+    ts: new Date(),
+    actor: 'USR-001',
+    action: 'PORTFOLIO_CONFIG_RESET',
+    entityType: 'PORTFOLIO_CONFIG',
+    entityId: 'DEMO_BASELINE',
+    details: {
+      action: 'Portfolio baseline recalibrated to initial 19.70% state',
+      restoredPolicies: 50,
+      operator: 'Priya Sharma (USR-001)',
+      targetTiv: '$502,000,000',
+    },
+  });
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────
